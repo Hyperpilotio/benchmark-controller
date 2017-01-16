@@ -4,12 +4,35 @@
 
 * config.json (required, parameters for benchmark-controller)
 * benchmark-processing.js (required, implement the benchmarkRun function and export it)
-* packages.json (optional, for extra nodejs packages' installation)
 * pre-run.sh (optional, preparation for load test)
+
+Developer needs to implement / adjust each file according to the target db / application (mysql, redis, cassandra...)
 
 ## Workflow
 
-pre-run.sh (installation / generate data) --> run.sh (check nodejs application's dependencies, start application)
+run.sh --> pre-run.sh (installation / generate data) --> run.sh (check nodejs application's dependencies, start application)
+
+run.sh
+```{shell}
+# check the existence of pre-run.sh
+
+/PATH/pre-run.sh
+
+# Start the application
+node bin/benchmark-controller.js
+```
+
+pre-run.sh
+
+```{shell}
+# Install the dependencies
+
+npm install redis-cli --save
+
+# generate testing data (like mysql case)
+
+GENERATE_DATA_TOOL
+```
 
 ## Structure
 
@@ -19,7 +42,7 @@ Example:
 workloads/redis/benchmark/
 
 - Dockerfile (refer to above example)
-- customized-lib/
+- customized-lib/ (Put config.json, benchmark-processing.js, and pre-run.sh in this folder)
 ```
 
 ## Docker
