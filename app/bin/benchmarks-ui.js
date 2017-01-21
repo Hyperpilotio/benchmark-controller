@@ -86,8 +86,6 @@ app.post('/', function(req, res) {
                 "error": err.message
             });
         }
-
-
     });
 });
 
@@ -156,13 +154,12 @@ var runBenchmark = function(options, callback) {
      */
 
     // Assume the options sent are options appropriate for Benchmark
-    const benchmark = new Benchmark(benchmarkOpts);
+    const benchmark = new Benchmark(options);
 
-    console.log("Running benchmark for %s:%s", options.target_host, options.target_port);
+    console.log("Running benchmark [%s]", options.name);
 
     // Run the benchmark and pass the output to the calling function.
-    benchmark.flow(options, function(err, output) {
+    benchmark.flow(function(err, output) {
         callback(err, output);
     });
-
 };

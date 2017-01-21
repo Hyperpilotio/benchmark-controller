@@ -3,8 +3,7 @@
 ## Requirements:
 
 * config.json (required, parameters for benchmark-controller)
-* benchmark-processing.js (required, implement the benchmarkRun function and export it)
-* pre-run.sh (optional, preparation for load test)
+* parser.js (required, implement the Parser class)
 
 Developer needs to implement / adjust each file according to the target db / application (mysql, redis, cassandra...)
 
@@ -52,7 +51,6 @@ workloads/redis/benchmark/
 ```
 FROM wen777/benchmark-controller:base
 # OS: Debian jessie / NodeJS latest version
-
 
 #
 #Install dependencies for load test tool

@@ -1,6 +1,6 @@
-# Web GUI for redis-benchmark
+# A Generic Web GUI for benchmark
 
-This is a simple web app frontend for running the `redis-benchmark` tool for [Redis](http://github.com/antirez/redis).
+This is a simple web app frontend for running the benchmark tool.
 
 
 
@@ -8,34 +8,11 @@ This is a simple web app frontend for running the `redis-benchmark` tool for [Re
 
 ## Installation
 
-To run this application you will need to install [node](https://nodejs.org/en/download/) and
-[redis-cli](http://redis.io/topics/quickstart). See the setup section below for instructions on building a standalone
-`redis-benchmark` binary.
-
+To run this application you will need to install [node](https://nodejs.org/en/download/).
 To install from Github
 
-    $ git clone https://github.com/compybara/redis-benchmarks-ui.git
-    $ cd redis-benchmarks-ui
+    $ git clone https://github.com/hyperpilotio/benchmark-controller.git
     $ npm install
-
-## Setup
-
-Depending on your environment you'll need to specify which version of the `redis-benchmark` binary to run. By default
-the app will look for `/usr/local/bin/redis-benchmark`. The `config/config.json` file can be used to specify an
-alternative location. You can use `config/config_sample.json` as a template.
-
-If you're deploying to an environment where you can't install a system-wide version of the
-redis-cli tools package you can bundle a copy of the `redis-benchmark` binary with your app.
-
-To build your own `redis-benchmark` binary make sure you've installed a C compiler and then peform the following steps:
-
-    $ git clone http://github.com/antirez/redis.git
-    $ cd redis
-    $ make
-    $ make redis-benchmark
-
-If the compile completes successfully you can simply copy the file `src/redis-benchmark` to your app directory.
-
 
 ## Usage
 
@@ -54,13 +31,13 @@ in OS X.
 
 ### API
 
-As well as providing a web-based GUI for running redis-benchmark this app also provides a couple of useful RESTful
+As well as providing a web-based GUI for running benchmark tool. This app also provides a couple of useful RESTful
 endpoints.
 
-#### `POST /api/redis-benchmark`
+#### `POST /api/benchmark`
 
 Executes a benchmark and returns the results in JSON format.
-You will need to supply the details of the Redis instance to benchmark in the body of the request. The `host` option is
+You will need to supply the details of the instance to benchmark in the body of the request. The `host` option is
 required, and the rest of the values will use default values if no value is given.
 
 Here's an example:
@@ -86,10 +63,10 @@ Here's an example:
       "MSET (10 keys)": "40650.41"
     }
 
-#### `GET /api/redis-instances`
+#### `GET /api/instances`
 
-API endpoint to discover the details of Redis instances bound to the application. This only works when the application
-is running inside CloudFoundry. It will parse the Redis services from `VCAP_SERVICES` and return their details in JSON
+API endpoint to discover the details of databse / app instances bound to the application. This only works when the application
+is running inside CloudFoundry. It will parse the services from `VCAP_SERVICES` and return their details in JSON
 format.
 
 If the app is not running in CloudFoundry it will return an empty JSON object.
@@ -98,8 +75,14 @@ Example:
 
     $ curl -H "Content-Type application/json"  https://localhost:6001/api/redis-instances
     {
-      "redis-benchmark-test": {
-        "host": "10.72.138.184",
-        "password": "jy1GQ3z695XvLGeTjNBRCoK5",
-        "port": "6004"
+	    "name": "redis-test",
+	    "workflow": ["run"],
+	    "commandSet": {
+		    "run": {
+		    	"name": "load-testing",
+		    	"binPath": "/usr/bin/redis-benchmark",
+		    	"args": ["-h", "redis-serve", "-p", "6379", "--csv", "-n", "100"],
+		    	"type": "run"
+		    }
+	    }
     }

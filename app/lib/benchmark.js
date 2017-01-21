@@ -4,8 +4,9 @@
  * Author: Adam Duston
  * License: MIT
  */
-var util = require('util');
-var spawn = require('child_process').spawn;
+const util = require('util');
+const spawn = require('child_process').spawn;
+const Parser = require('../extension-lib/parser.js');
 
 function BenchmarkException(message) {
     this.name = "BenchmarkException";
@@ -38,12 +39,14 @@ Benchmark.prototype.flow = function(callback) {
 
     for (i = 0; i < lenghtOfWorkflow; i++) {
         const commandObj = commandSet[workflow[i]];
-        if (commandObj.type == "beforeRun") {
+        if (commandObj.type === "beforeRun") {
             this.beforeRun(commandObj);
-        } else if (commandObj.type == "run") {
+        } else if (commandObj.type === "run") {
             // command, start the load testing.
-            this.run(commandObj, callback);
-        } else if (commandObj.type == "afterRun") {
+            this.run(commandObj, function(err, res) {
+                callback(err, res);
+            });
+        } else if (commandObj.type === "afterRun") {
             // FIXME does this command work ??
             this.afterRun(commandObj);
         }
@@ -145,28 +148,13 @@ Benchmark.prototype.run = function(commandObj, callback) {
 
     // When benchmark exits convert the csv output to json objects and return to the caller.
     child.on('exit', function(exitCode) {
-        benchmarkObj = {};
-
         if (exitCode !== 0) {
             console.log("Child process exited with code: " + exitCode);
             callback(new Error(error_output), null);
         } else { // Parse the output of benchmark to an object.
-            lines = output.split("\n");
-
-            //FIXME Adjust for cassandra and something else
-            for (var i in lines) {
-                // There might be an empty line at the end somewhere.
-                if (lines[i] === '' || lines[i] === '\n') {
-                    continue;
-                }
-                // Clean up quotes from each line
-                noquotes = lines[i].replace(/["]+/g, '');
-
-                // Set the first column to a key and the second column to the value in an object.
-                columns = noquotes.split(",");
-                benchmarkObj[columns[0]] = columns[1];
-            }
-
+            const parser = new Parser();
+            const lines = output.split("\n");
+            const benchmarkObj = parser.processLines(lines);;
             // Return the resulting benchmarks data object.
             callback(null, benchmarkObj);
         }
