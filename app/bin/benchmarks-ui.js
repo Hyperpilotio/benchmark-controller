@@ -47,14 +47,6 @@ app.post('/', function(req, res) {
     /*
      * POST route for form submit runs benchmark and displays results.
      */
-    // benchmarkOpts = {
-    //     "target_host": req.body.target_host,
-    //     "target_port": req.body.target_port,
-    //     "target_pw": req.body.target_pw,
-    //     "num_requests": req.body.num_requests,
-    //     "benchmark_bin": benchmark_cmd
-    // };
-
     const benchmarkOpts = generateBenchmarkOpts(req.body);
 
     runBenchmark(benchmarkOpts, function(err, results) {
@@ -96,26 +88,6 @@ app.post('/api/benchmark', function(req, res) {
     res.contentType('application/json');
 
     // FIXME change html layout
-    // // Get the benchmark parameters from the request body, or use defaults.
-    // var target_host = req.body.host !== undefined ? req.body.host : null;
-    // var target_port = req.body.port !== undefined ? req.body.port : 6379;
-    // var target_pw = req.body.password !== undefined ? req.body.password : "";
-    // var num_requests = req.body.requests !== undefined ? req.body.requests : 10000;
-
-    // // A host is required.
-    // if (!target_host) {
-    //     res.status(400);
-    //     res.send();
-    // }
-
-    // benchmarkOpts = {
-    //     "target_host": target_host,
-    //     "target_port": target_port,
-    //     "target_pw": target_pw,
-    //     "num_requests": num_requests,
-    //     "benchmark_bin": benchmark_cmd
-    // };
-
     const benchmarkOpts = generateBenchmarkOpts(req.body);
 
     runBenchmark(benchmarkOpts, function(err, results) {
