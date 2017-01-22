@@ -7,20 +7,21 @@ var Influx = require('influx');
 
 const config = require('../config/config.js');
 
-// FIXME api payload
-var measurement = 'redis/benchmark';
-
 // create InfluxDB database
 request.get('http://' + config.influxdbHost + ':' + config.influxdbPort + '/query?q=' + querystring.escape('CREATE DATABASE ' + config.influxdbName));
 
 // init InfluxDB client
 const influx = new Influx.InfluxDB({
-  host: config.influxdbHost,
-  port: config.influxdbPort,
-  database: config.influxdbName
+    host: config.influxdbHost,
+    port: config.influxdbPort,
+    database: config.influxdbName
 });
 
-influx.insertInflux = function(input) {
+influx.insertInflux = function(input, options) {
+    if (options === undefined || options.measurement === undefined || options.measurement === "") {
+        throw new Error("Measurement is undefined or is an empty string");
+    }
+
     // init write influxDb fields Object
     let fieldObj = {};
     fieldObj.uuid = uuid.v1();
@@ -30,7 +31,7 @@ influx.insertInflux = function(input) {
     }
 
     influx.writePoints([{
-        measurement: measurement,
+        measurement: options.measurement,
         tags: {
             host: os.hostname()
         },

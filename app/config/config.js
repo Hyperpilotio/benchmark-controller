@@ -7,9 +7,7 @@ const configFile = path.join(__dirname, "config.json");
 // default configuration
 var config = {
     influxdbHost: "influxsrv",
-    influxdbPort: "8086",
-    influxdbName: "redis",
-    benchmark_cmd: "/usr/local/bin/redis-benchmark"
+    influxdbPort: "8086"
 };
 
 try {
@@ -17,6 +15,11 @@ try {
 } catch (e) {
     // Quit if the config file can't be read
     console.log("Error parsing %s - %s", configFile, e);
+    process.exit(1);
+}
+
+if (config.influxdbName === undefined) {
+    console.log(new Error("Required field is missing."));
     process.exit(1);
 }
 

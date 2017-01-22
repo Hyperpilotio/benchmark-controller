@@ -66,7 +66,7 @@ app.post('/', function(req, res) {
                 "error": null
             });
 
-            influx.insertInflux(outputResults);
+            influx.insertInflux(outputResults, benchmarkOpts);
 
         } else {
             res.render('results', {
@@ -97,6 +97,7 @@ app.post('/api/benchmark', function(req, res) {
         } else {
             res.status(200);
             res.json(results);
+            influx.insertInflux(results, benchmarkOpts);
         }
     });
 });
