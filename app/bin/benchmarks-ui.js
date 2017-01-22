@@ -19,7 +19,8 @@ const generateBenchmarkOpts = function(requestBody) {
     return {
         commandSet: requestBody.commandSet,
         name: requestBody.name,
-        workflow: requestBody.workflow
+        workflow: requestBody.workflow,
+        measurement: requestBody.measurement
     };
 };
 

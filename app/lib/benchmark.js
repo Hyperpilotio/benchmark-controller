@@ -33,11 +33,11 @@ Benchmark.prototype.flow = function(callback) {
     const lengthOfWorkflow = workflow.length;
     const commandSet = this.getCommandSet();
 
-    if (lenghtOfWorkflow == 0) {
+    if (lengthOfWorkflow == 0) {
         return;
     }
 
-    for (i = 0; i < lenghtOfWorkflow; i++) {
+    for (i = 0; i < lengthOfWorkflow; i++) {
         const commandObj = commandSet[workflow[i]];
         if (commandObj.type === "load-test") {
             // command, start the load testing.
@@ -87,7 +87,7 @@ Benchmark.prototype.run = function(commandObj, callback) {
         } else {
             if (!isCallbackUndefined) {
                 // Parse the output of benchmark to an object.
-                const parser = new Parser();
+                const parser = new Parser(commandObj);
                 const lines = output.split("\n");
                 const benchmarkObj = parser.processLines(lines);;
                 // Return the resulting benchmarks data object.

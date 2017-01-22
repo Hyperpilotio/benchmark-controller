@@ -11,7 +11,9 @@ POST /load-test
       name: "",
       binPath: "PATH/TO/COMMAND_TOOL",
       args: ["", ""],
-      type: "beforeRun|run|afterRun"
+      // NOTE: load-test type should be used by only one command.
+      type: "load-test|run",
+      verbose: true | false
     }
   }
 }
@@ -30,9 +32,10 @@ POST /api/benchmark
 			"name": "load-testing",
 			"binPath": "/usr/bin/cassandra-stress",
 			"args": ["write", "n=1000000", "-rate", "threads=50", "-node", "cassandra-serve"],
-			"type": "run"
+			"type": "load-test"
 		}
 	}
+    "measurement": "cassandra/benchmark"
 }
 ```
 

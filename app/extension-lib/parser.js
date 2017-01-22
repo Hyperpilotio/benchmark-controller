@@ -1,5 +1,7 @@
 class Parser {
-    constructor() {}
+    constructor(options) {
+        this.isVerbose = (options === undefined || options.verbose === undefined) ? false : options.verbose;
+    }
 
     processLines(lines = []) {
         let benchmarkObj = {};

@@ -1,6 +1,5 @@
 {
-    "benchmark_cmd": "/usr/bin/redis-benchmark",
     "influxdbHost": "localhost",
     "influxdbPort": "8086",
-    "influxdbName": "redis"
+    "influxdbName": ""
 }

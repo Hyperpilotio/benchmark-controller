@@ -1,6 +1,5 @@
 {
     "influxdbHost": "influxsrv",
     "influxdbPort": "8086",
-    "influxdbName": "redis",
-    "influxdbMeasurement": "redis/benchmark"
+    "influxdbName": "redis"
 }

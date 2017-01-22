@@ -19,7 +19,7 @@ const influx = new Influx.InfluxDB({
 
 influx.insertInflux = function(input, options) {
     if (options === undefined || options.measurement === undefined || options.measurement === "") {
-        throw new Error("Measurement is undefined or is an empty string");
+        throw new Error(`Measurement is undefined or is an empty string. ${options.measurement}` );
     }
 
     // init write influxDb fields Object
