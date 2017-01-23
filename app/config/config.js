@@ -7,7 +7,9 @@ const configFile = path.join(__dirname, "config.json");
 // default configuration
 var config = {
     influxdbHost: "influxsrv",
-    influxdbPort: "8086"
+    influxdbPort: "8086",
+    appHost: "0.0.0.0",
+    appPort: 6001
 };
 
 try {

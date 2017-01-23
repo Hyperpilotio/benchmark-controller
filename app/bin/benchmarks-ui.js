@@ -13,7 +13,7 @@ var uuid = require('node-uuid');
 var querystring = require("querystring");
 
 const influx = require('./influxdb.js');
-// const config = require('../config/config.js');
+const config = require('../config/config.js');
 
 const generateBenchmarkOpts = function(requestBody) {
     return {
@@ -115,7 +115,7 @@ app.get('/api/instances', function(req, res) {
 });
 
 // Start the application. Get bind details from cfenv
-var server = app.listen(6001, "0.0.0.0", function() {
+var server = app.listen(config.appPort, config.appHost, function() {
     var host = server.address().address;
     var port = server.address().port;
 
