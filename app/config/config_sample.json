@@ -1,0 +1,7 @@
+{
+    "influxdbHost": "localhost",
+    "influxdbPort": "8086",
+    "influxdbName": "",
+    "appHost": "0.0.0.0",
+    "appPort": 6001
+}
