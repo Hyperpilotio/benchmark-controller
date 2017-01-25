@@ -6,8 +6,8 @@ const configFile = path.join(__dirname, "config.json");
 
 // default configuration
 var config = {
-    influxdbHost: "influxsrv",
-    influxdbPort: "8086",
+    mongodbHost: "mongosrv",
+    mongodbPort: "27017",
     appHost: "0.0.0.0",
     appPort: 6001
 };
@@ -20,7 +20,7 @@ try {
     process.exit(1);
 }
 
-if (config.influxdbName === undefined) {
+if (config.mongodbName === undefined) {
     console.log(new Error("Required field is missing."));
     process.exit(1);
 }
