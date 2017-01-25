@@ -66,8 +66,8 @@ app.post('/', function(req, res) {
                 "error": null
             });
 
-            const statObj = new db.Stat();
-            statObj.saveStat(outputResults);
+            const metricModel = new db.Metric();
+            metricModel.saveMetric(outputResults);
 
         } else {
             res.render('results', {
@@ -98,9 +98,8 @@ app.post('/api/benchmark', function(req, res) {
         } else {
             res.status(200);
             res.json(results);
-            const statObj = new db.Stat();
-            statObj.saveStat(results);
-
+            const metricModel = new db.Metric();
+            metricModel.saveMetric(results);
         }
     });
 });

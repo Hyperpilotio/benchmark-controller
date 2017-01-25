@@ -20,7 +20,7 @@ connection.once('open', function() {
     console.log("Successfully connect!");
 });
 
-const StatSchema = new Schema({
+const MetricSchema = new Schema({
     // _id: ObjectId,
     createdAt: {
         type: Date,
@@ -29,14 +29,14 @@ const StatSchema = new Schema({
     host: {
         type: String,
         default: Hostname
+    },
+    stat: {
+        type: Schema.Types.Mixed
     }
-    // Store stats
-}, {
-    strict: false
 });
 
-StatSchema.method = {
-    saveStat: function(stat) {
+MetricSchema.methods = {
+    saveMetric: function(stat) {
         const fieldObj = {};
 
         for (let key in stat) {
@@ -49,7 +49,7 @@ StatSchema.method = {
 };
 
 // FIXME measurement === config.mongodbDB remember to modify doc, readme, dockerfile config, postman payload
-const Stat = mongoose.model('Stat', StatSchema);
-db.Stat = Stat;
+const Metric = mongoose.model('Metric', MetricSchema);
+db.Metric = Metric;
 
 module.exports = db;
