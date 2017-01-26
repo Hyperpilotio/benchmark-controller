@@ -13,11 +13,17 @@ if (config.mongodbHost === undefined || config.mongodbDB) {
     throw new Error(`Missing required config to connect to mongodb. Host ${config.mongodbHost} Port ${config.mongodbPort}`);
 }
 
+// NOTE: DeprecationWarning: Mongoose: mpromise
+// https://stackoverflow.com/questions/38138445/node3341-deprecationwarning-mongoose-mpromise
+mongoose.Promise = global.Promise;
 mongoose.connect(`mongodb://${config.mongodbHost}:${config.mongodbPort}/${config.mongodbName}`);
 
-connection.on('error', console.error.bind(console, 'connection error:'));
+connection.on('error', function(err){
+    console.log(`connection error: ${err}.\nHost ${config.mongodbHost} Port ${config.mongodbPort}`);
+    process.exit(1);
+});
 connection.once('open', function() {
-    console.log("Successfully connect!");
+    console.log(`Successfully connect to mongo!\nmongodb://${config.mongodbHost}:${config.mongodbPort}/${config.mongodbName}`);
 });
 
 const MetricSchema = new Schema({
@@ -44,7 +50,11 @@ MetricSchema.methods = {
         }
 
         this.stat = fieldObj;
-        return this.save();
+        return this.save(function(err){
+            if(err){
+                console.log(`Unable to save metric: ${err}`);
+            }
+        });
     }
 };
 
