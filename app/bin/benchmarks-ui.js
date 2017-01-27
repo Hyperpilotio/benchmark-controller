@@ -9,10 +9,9 @@ var fs = require('fs');
 var Benchmark = require('../lib/benchmark');
 var bodyParser = require('body-parser');
 var os = require('os');
-var uuid = require('node-uuid');
 var querystring = require("querystring");
 
-const influx = require('./influxdb.js');
+const db = require('./mongodb.js');
 const config = require('../config/config.js');
 
 const generateBenchmarkOpts = function(requestBody) {
@@ -67,7 +66,8 @@ app.post('/', function(req, res) {
                 "error": null
             });
 
-            influx.insertInflux(outputResults, benchmarkOpts);
+            const metricModel = new db.Metric();
+            metricModel.saveMetric(outputResults);
 
         } else {
             res.render('results', {
@@ -98,7 +98,8 @@ app.post('/api/benchmark', function(req, res) {
         } else {
             res.status(200);
             res.json(results);
-            influx.insertInflux(results, benchmarkOpts);
+            const metricModel = new db.Metric();
+            metricModel.saveMetric(results);
         }
     });
 });

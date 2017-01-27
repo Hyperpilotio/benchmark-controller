@@ -1,42 +1,44 @@
-var fs = require('fs');
-var os = require('os');
-var uuid = require('node-uuid');
-var querystring = require("querystring");
-var request = require('request');
-var Influx = require('influx');
+// NOTE Comment whole file since we are not going to use influxdb.
+// Remember to adjust config file and deploy.json if you want to use influxdb to store stats.
+// var fs = require('fs');
+// var os = require('os');
+// var uuid = require('node-uuid');
+// var querystring = require("querystring");
+// var request = require('request');
+// var Influx = require('influx');
 
-const config = require('../config/config.js');
+// const config = require('../config/config.js');
 
-// create InfluxDB database
-request.get('http://' + config.influxdbHost + ':' + config.influxdbPort + '/query?q=' + querystring.escape('CREATE DATABASE ' + config.influxdbName));
+// // create InfluxDB database
+// request.get('http://' + config.influxdbHost + ':' + config.influxdbPort + '/query?q=' + querystring.escape('CREATE DATABASE ' + config.influxdbName));
 
-// init InfluxDB client
-const influx = new Influx.InfluxDB({
-    host: config.influxdbHost,
-    port: config.influxdbPort,
-    database: config.influxdbName
-});
+// // init InfluxDB client
+// const influx = new Influx.InfluxDB({
+//     host: config.influxdbHost,
+//     port: config.influxdbPort,
+//     database: config.influxdbName
+// });
 
-influx.insertInflux = function(input, options) {
-    if (options === undefined || options.measurement === undefined || options.measurement === "") {
-        throw new Error(`Measurement is undefined or is an empty string. ${options.measurement}` );
-    }
+// influx.insertInflux = function(input, options) {
+//     if (options === undefined || options.measurement === undefined || options.measurement === "") {
+//         throw new Error(`Measurement is undefined or is an empty string. ${options.measurement}` );
+//     }
 
-    // init write influxDb fields Object
-    let fieldObj = {};
-    fieldObj.uuid = uuid.v1();
+//     // init write influxDb fields Object
+//     let fieldObj = {};
+//     fieldObj.uuid = uuid.v1();
 
-    for (let key in input) {
-        fieldObj[key] = input[key];
-    }
+//     for (let key in input) {
+//         fieldObj[key] = input[key];
+//     }
 
-    influx.writePoints([{
-        measurement: options.measurement,
-        tags: {
-            host: os.hostname()
-        },
-        fields: fieldObj
-    }]);
-};
+//     influx.writePoints([{
+//         measurement: options.measurement,
+//         tags: {
+//             host: os.hostname()
+//         },
+//         fields: fieldObj
+//     }]);
+// };
 
-module.exports = influx;
+// module.exports = influx;
