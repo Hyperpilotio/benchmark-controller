@@ -66,9 +66,10 @@ app.post('/', function(req, res) {
                 "error": null
             });
 
-            const metricModel = new db.Metric();
-            metricModel.saveMetric(outputResults);
-
+            if (outputResults.case !== "noLoadTest") {
+                const metricModel = new db.Metric();
+                metricModel.saveMetric(outputResults);
+            }
         } else {
             res.render('results', {
                 "results": null,
@@ -98,8 +99,11 @@ app.post('/api/benchmark', function(req, res) {
         } else {
             res.status(200);
             res.json(results);
-            const metricModel = new db.Metric();
-            metricModel.saveMetric(results);
+
+            if (results.case !== "noLoadTest") {
+                const metricModel = new db.Metric();
+                metricModel.saveMetric(results);
+            }
         }
     });
 });

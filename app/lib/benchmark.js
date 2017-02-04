@@ -32,17 +32,54 @@ Benchmark.prototype.flow = function(callback) {
     const workflow = this.getBenchmarkWorkflow();
     const lengthOfWorkflow = workflow.length;
     const commandSet = this.getCommandSet();
+    let testExist = false;
 
     if (lengthOfWorkflow == 0) {
         return;
     }
 
-    for (i = 0; i < lengthOfWorkflow; i++) {
+    for (let i = 0; i < lengthOfWorkflow; i++) {
         const commandObj = commandSet[workflow[i]];
+        if(commandObj.type === "load-test") {
+            testExist = true;
+        }
+    }
+
+    if (testExist === false) {
+        this.executeCmd(lengthOfWorkflow, workflow, commandSet, function(err, res) {
+            callback(err, res);
+        });
+    } else {
+        this.loadTest(lengthOfWorkflow, workflow, commandSet, function(err, res) {
+            callback(err, res);
+        });
+    }
+};
+
+Benchmark.prototype.loadTest = function(lengthOfWorkflow, workflow, commandSet, callback) {
+    for (let i = 0; i < lengthOfWorkflow; i++) {
+        const commandObj = commandSet[workflow[i]];
+
         if (commandObj.type === "load-test") {
+            isTested = true;
             // command, start the load testing.
             this.run(commandObj, function(err, res) {
                 callback(err, res);
+            });
+            continue;
+        }
+
+        this.run(commandObj);
+    }
+};
+
+Benchmark.prototype.executeCmd = function(lengthOfWorkflow, workflow, commandSet, callback) {
+    for (let i = 0; i < lengthOfWorkflow; i++) {
+        const commandObj = commandSet[workflow[i]];
+
+        if(i + 1 === lengthOfWorkflow) {
+            this.run(commandObj, function(err, res) {
+                callback(err, {"case": "noLoadTest"});
             });
             continue;
         }
