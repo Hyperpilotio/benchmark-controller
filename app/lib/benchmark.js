@@ -61,15 +61,13 @@ Benchmark.prototype.loadTest = function(lengthOfWorkflow, workflow, commandSet, 
         const commandObj = commandSet[workflow[i]];
 
         if (commandObj.type === "load-test") {
-            isTested = true;
             // command, start the load testing.
             this.run(commandObj, function(err, res) {
                 callback(err, res);
             });
-            continue;
+        } else {
+          this.run(commandObj);
         }
-
-        this.run(commandObj);
     }
 };
 
