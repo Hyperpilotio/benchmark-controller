@@ -1,8 +1,5 @@
 /**
- * benchmarks.js - Utility module for running benchmarks cli too.
- *
- * Author: Adam Duston
- * License: MIT
+ * benchmarks.js - Utility module for running benchmarks cli.
  */
 const util = require('util');
 const spawn = require('child_process').spawn;
@@ -14,102 +11,56 @@ function BenchmarkException(message) {
 }
 
 function Benchmark(options) {
-    if (options.workflow === undefined) {
-        throw new BenchmarkException("Initialization Failed");
+    if (options.loadTest === undefined) {
+      throw new BenchmarkException("Initialization Failed");
     }
-    const workflow = options.workflow.length > 0 ? options.workflow : [];
-
-    this.getBenchmarkWorkflow = function() {
-        return workflow;
-    };
-
-    this.getCommandSet = function() {
-        return Object.assign({}, options.commandSet);
-    };
 }
 
 Benchmark.prototype.flow = function(callback) {
-    const workflow = this.getBenchmarkWorkflow();
-    const lengthOfWorkflow = workflow.length;
-    const commandSet = this.getCommandSet();
-    let testExist = false;
-
-    if (lengthOfWorkflow == 0) {
-        return;
+  if (this.cleanup !== undefined) {
+    callback = function(error, data) {
+      this.run(this.cleanup, null);
+      callback(error, data);
     }
+  }
 
-    for (let i = 0; i < lengthOfWorkflow; i++) {
-        const commandObj = commandSet[workflow[i]];
-        if(commandObj.type === "load-test") {
-            testExist = true;
-        }
-    }
-
-    if (testExist === false) {
-        this.executeCmd(lengthOfWorkflow, workflow, commandSet, function(err, res) {
-            callback(err, res);
-        });
-    } else {
-        this.loadTest(lengthOfWorkflow, workflow, commandSet, function(err, res) {
-            callback(err, res);
-        });
-    }
-};
-
-Benchmark.prototype.loadTest = function(lengthOfWorkflow, workflow, commandSet, callback) {
-    for (let i = 0; i < lengthOfWorkflow; i++) {
-        const commandObj = commandSet[workflow[i]];
-
-        if (commandObj.type === "load-test") {
-            // command, start the load testing.
-            this.run(commandObj, function(err, res) {
-                callback(err, res);
-            });
-        } else {
-          this.run(commandObj);
-        }
-    }
-};
-
-Benchmark.prototype.executeCmd = function(lengthOfWorkflow, workflow, commandSet, callback) {
-    for (let i = 0; i < lengthOfWorkflow; i++) {
-        const commandObj = commandSet[workflow[i]];
-
-        if(i + 1 === lengthOfWorkflow) {
-            this.run(commandObj, function(err, res) {
-                callback(err, {"case": "noLoadTest"});
-            });
-            continue;
-        }
-
-        this.run(commandObj);
-    }
+  if (this.initialize !== undefined) {
+    this.run(this.initialize, function(error, data) {
+      if (error !== null) {
+        callback(new Error("Failed to initialize load test with command '" + command + "': " + error.message));
+      } else {
+        this.run(this.loadTest, callback);
+      }
+    })
+  } else {
+    this.run(this.loadTest, callback);
+  }
 };
 
 Benchmark.prototype.run = function(commandObj, callback) {
     // Add the number of requests set to the arguments.
     const args = commandObj.args;
-    const benchmarkCommand = commandObj.binPath;
+    const path = commandObj.path;
     const isCallbackUndefined = callback === undefined ? true : false;
 
     // Spawn the child process to run the  benchmark.
-    const child = spawn(benchmarkCommand, args);
+    const child = spawn(path, args);
     // Collect stdout into a CSV string.
     let output = "";
     let error_output = "";
     child.stdout.on('data', function(data) {
         output += data;
-        console.log("child_process [%s] [STDOUT]:%s", commandObj.name, data);
+        console.log("child_process [%s] [STDOUT]:%s", commandObj.path, data);
     });
 
     child.stderr.on('data', function(data) {
         // Log errors
         error_output += data;
-        console.log("child_process [%s] [STDERR]: %s", commandObj.name, data);
+        console.log("child_process [%s] [STDERR]: %s", commandObj.path, data);
     });
 
     child.on('error', function(error) {
-        console.log("Error running child process [%s]: %s", commandObj.name, error);
+        console.log("Error running child process [%s]: %s", commandObj.path, error);
     });
 
     // When benchmark exits convert the csv output to json objects and return to the caller.

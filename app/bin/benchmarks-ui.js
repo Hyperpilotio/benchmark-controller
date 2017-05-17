@@ -16,12 +16,14 @@ const config = require('../config/config.js');
 
 const generateBenchmarkOpts = function(requestBody) {
     return {
-        commandSet: requestBody.commandSet,
-        name: requestBody.name,
-        workflow: requestBody.workflow,
-        measurement: requestBody.measurement
+        initialize: requestBody.initialize,
+        loadTest: requestBody.loadTest,
+        cleanup: requestbody.cleanup
+        stageId: requestBody.stageId
     };
 };
+
+benchmarks = {}
 
 // Initialize the express application. Use Jade as the view engine
 const app = express();
@@ -83,14 +85,29 @@ app.post('/', function(req, res) {
     });
 });
 
-app.post('/api/benchmark', function(req, res) {
+app.get('/api/benchmarks/:stageId', function(req, res) {
+    if (benchmarks[benchmarkOpts.stageId]) {
+        res.status(200);
+    } else {
+        res.status(404);
+    }
+});
+
+app.post('/api/benchmarks', function(req, res) {
     /*
      * Provide an API endpoint for running a benchmark and getting back a raw JSON.
      */
     res.contentType('application/json');
 
-    // FIXME change html layout
     const benchmarkOpts = generateBenchmarkOpts(req.body);
+
+    if (benchmarks[benchmarkOpts.stageId]) {
+      res.status(400);
+      res.status("Benchmark for stage Id " + benchmarkOpts.stageId + " already running")
+      return
+    }
+
+    benchmarks[benchmarkOpts.stageId] = benchmarkOpts;
 
     runBenchmark(benchmarkOpts, function(err, results) {
         if (err !== null) {
@@ -105,18 +122,8 @@ app.post('/api/benchmark', function(req, res) {
                 metricModel.saveMetric(results);
             }
         }
+        delete benchmarks[benchmarkOpts.stageId];
     });
-});
-
-app.get('/api/instances', function(req, res) {
-    /*
-     * Provide an API endpoint to get information about the services bound to this application. Return as a JSON
-     * which includes the instance name and credentials.
-     */
-    res.contentType('application/json');
-
-    // Just return an empty result if the app isn't running in CloudFoundry.
-    return res.json({});
 });
 
 // Start the application. Get bind details from cfenv
@@ -135,7 +142,7 @@ var runBenchmark = function(options, callback) {
     // Assume the options sent are options appropriate for Benchmark
     const benchmark = new Benchmark(options);
 
-    console.log("Running benchmark [%s]", options.name);
+    console.log("Running benchmark id [%s]", options.stageId);
 
     // Run the benchmark and pass the output to the calling function.
     benchmark.flow(function(err, output) {
