@@ -9,21 +9,24 @@ const connection = mongoose.connection;
 const Schema = mongoose.Schema,
     ObjectId = Schema.ObjectId;
 
-if (config.mongodbHost === undefined || config.mongodbDB) {
-    throw new Error(`Missing required config to connect to mongodb. Host ${config.mongodbHost} Port ${config.mongodbPort}`);
+const host = config.store.host;
+const port = config.store.port;
+const dbName = config.store.dbName;
+if (host === undefined || port === undefined || dbName === undefined) {
+    throw new Error(`Missing required config to connect to mongodb. Host ${host} Port ${port} DB ${dbName}`);
 }
 
 // NOTE: DeprecationWarning: Mongoose: mpromise
 // https://stackoverflow.com/questions/38138445/node3341-deprecationwarning-mongoose-mpromise
 mongoose.Promise = global.Promise;
-mongoose.connect(`mongodb://${config.mongodbHost}:${config.mongodbPort}/${config.mongodbName}`);
+mongoose.connect(`mongodb://${host}:${port}/${dbName}`);
 
 connection.on('error', function(err){
-    console.log(`connection error: ${err}.\nHost ${config.mongodbHost} Port ${config.mongodbPort}`);
+    console.log(`connection error: ${err}.\nHost ${host} Port ${port}`);
     process.exit(1);
 });
 connection.once('open', function() {
-    console.log(`Successfully connect to mongo!\nmongodb://${config.mongodbHost}:${config.mongodbPort}/${config.mongodbName}`);
+    console.log(`Successfully connect to mongo!\nmongodb://${host}:${port}/${dbName}`);
 });
 
 const MetricSchema = new Schema({

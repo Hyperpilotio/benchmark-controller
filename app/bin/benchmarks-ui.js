@@ -11,14 +11,21 @@ var bodyParser = require('body-parser');
 var os = require('os');
 var querystring = require("querystring");
 
-const db = require('./mongodb.js');
 const config = require('../config/config.js');
+const db = function() {
+    switch (config.store.type) {
+    case 'mongo':
+        return require('./mongodb.js');
+    case 'influx':
+        return require('./influxdb.js');
+    }
+}();
 
 const generateBenchmarkOpts = function(requestBody) {
     return {
         initialize: requestBody.initialize,
         loadTest: requestBody.loadTest,
-        cleanup: requestbody.cleanup
+        cleanup: requestbody.cleanup,
         stageId: requestBody.stageId
     };
 };
@@ -38,7 +45,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
-
 
 // GET route for index
 app.get('/', function(req, res) {
@@ -127,7 +133,7 @@ app.post('/api/benchmarks', function(req, res) {
 });
 
 // Start the application. Get bind details from cfenv
-var server = app.listen(config.appPort, config.appHost, function() {
+var server = app.listen(config.port, config.host, function() {
     var host = server.address().address;
     var port = server.address().port;
 
