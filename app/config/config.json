@@ -1,6 +1,6 @@
 {
     "store": {
-        "type": "mongo",
+        "type": "file",
         "host": "mongosrv",
         "port": "27017",
         "dbName": "redis"

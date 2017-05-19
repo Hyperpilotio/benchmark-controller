@@ -1,4 +1,3 @@
-// NOTE Comment whole file since we are not going to use influxdb.
 // Remember to adjust config file and deploy.json if you want to use influxdb to store stats.
 // var fs = require('fs');
 // var os = require('os');

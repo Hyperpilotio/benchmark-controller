@@ -18,6 +18,8 @@ const db = function() {
         return require('./mongodb.js');
     case 'influx':
         return require('./influxdb.js');
+    case 'file':
+        return require('./file.js');
     }
 }();
 
