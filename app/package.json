@@ -4,7 +4,8 @@
   "description": "A generic Web GUI for benchmarking performance",
   "main": "bin/benchmarks-ui.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node bin/benchmarks-ui.js"
   },
   "repository": {
     "type": "git",
