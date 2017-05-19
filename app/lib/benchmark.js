@@ -14,27 +14,31 @@ function Benchmark(options) {
     if (options.loadTest === undefined) {
       throw new BenchmarkException("Initialization Failed");
     }
+    this.initialize = options.initialize;
+    this.loadTest = options.loadTest;
+    this.cleanup = options.cleanup;
 }
 
 Benchmark.prototype.flow = function(callback) {
-  if (this.cleanup !== undefined) {
-    callback = function(error, data) {
-      this.run(this.cleanup, null);
-      callback(error, data);
+    var that = this;
+    if (this.cleanup !== undefined) {
+        callback = function(error, data) {
+            this.run(this.cleanup, null);
+            callback(error, data);
+        }
     }
-  }
 
-  if (this.initialize !== undefined) {
-    this.run(this.initialize, function(error, data) {
-      if (error !== null) {
-        callback(new Error("Failed to initialize load test with command '" + command + "': " + error.message));
-      } else {
+    if (this.initialize !== undefined) {
+        this.run(this.initialize, function(error, data) {
+            if (error !== null) {
+                callback(new Error("Failed to initialize load test with command '" + command + "': " + error.message));
+            } else {
+                that.run(that.loadTest, callback);
+            }
+        });
+    } else {
         this.run(this.loadTest, callback);
-      }
-    })
-  } else {
-    this.run(this.loadTest, callback);
-  }
+    }
 };
 
 Benchmark.prototype.run = function(commandObj, callback) {
@@ -43,8 +47,9 @@ Benchmark.prototype.run = function(commandObj, callback) {
     const path = commandObj.path;
     const isCallbackUndefined = callback === undefined ? true : false;
 
-    // Spawn the child process to run the  benchmark.
+    // Spawn the child process to run the benchmark.
     const child = spawn(path, args);
+
     // Collect stdout into a CSV string.
     let output = "";
     let error_output = "";

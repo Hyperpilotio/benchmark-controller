@@ -45,7 +45,7 @@ const MetricSchema = new Schema({
 });
 
 MetricSchema.methods = {
-    saveMetric: function(stat) {
+    SaveMetric: function(stat) {
         const fieldObj = {};
 
         for (let key in stat) {

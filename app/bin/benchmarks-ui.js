@@ -12,14 +12,15 @@ var os = require('os');
 var querystring = require("querystring");
 
 const config = require('../config/config.js');
-const db = function() {
+const metricModel = function() {
     switch (config.store.type) {
     case 'mongo':
-        return require('./mongodb.js');
+        return new require('./mongodb.js').Metrics;
     case 'influx':
         return require('./influxdb.js');
     case 'file':
-        return require('./file.js');
+        var dbClass = require('./file.js').Metrics;
+        return new dbClass()
     }
 }();
 
@@ -27,7 +28,7 @@ const generateBenchmarkOpts = function(requestBody) {
     return {
         initialize: requestBody.initialize,
         loadTest: requestBody.loadTest,
-        cleanup: requestbody.cleanup,
+        cleanup: requestBody.cleanup,
         stageId: requestBody.stageId
     };
 };
@@ -76,10 +77,7 @@ app.post('/', function(req, res) {
                 "error": null
             });
 
-            if (outputResults.case !== "noLoadTest") {
-                const metricModel = new db.Metric();
-                metricModel.saveMetric(outputResults);
-            }
+            metricModel.SaveMetric(outputResults);
         } else {
             res.render('results', {
                 "results": null,
@@ -125,10 +123,7 @@ app.post('/api/benchmarks', function(req, res) {
             res.status(200);
             res.json(results);
 
-            if (results.case !== "noLoadTest") {
-                const metricModel = new db.Metric();
-                metricModel.saveMetric(results);
-            }
+            metricModel.SaveMetric(results);
         }
         delete benchmarks[benchmarkOpts.stageId];
     });
