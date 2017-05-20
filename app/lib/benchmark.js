@@ -21,14 +21,14 @@ function Benchmark(options) {
 
 Benchmark.prototype.flow = function(callback) {
     var that = this;
-    if (this.cleanup !== undefined) {
+    if (this.cleanup !== undefined && this.cleanup !== null) {
         callback = function(error, data) {
             this.run(this.cleanup, null);
             callback(error, data);
         }
     }
 
-    if (this.initialize !== undefined) {
+    if (this.initialize !== undefined && this.initialize !== null) {
         this.run(this.initialize, function(error, data) {
             if (error !== null) {
                 callback(new Error("Failed to initialize load test with command '" + command + "': " + error.message));

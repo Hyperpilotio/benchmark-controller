@@ -109,7 +109,7 @@ app.post('/api/benchmarks', function(req, res) {
 
     if (benchmarks[benchmarkOpts.stageId]) {
       res.status(400);
-      res.status("Benchmark for stage Id " + benchmarkOpts.stageId + " already running")
+      res.json({"error": "Benchmark for stage Id " + benchmarkOpts.stageId + " already running"});
       return
     }
 
@@ -118,11 +118,10 @@ app.post('/api/benchmarks', function(req, res) {
     runBenchmark(benchmarkOpts, function(err, results) {
         if (err !== null) {
             res.status(500);
-            res.status("Error running benchmark: " + err);
+            res.json({"error": "Error running benchmark: " + err});
         } else {
             res.status(200);
             res.json(results);
-
             metricModel.SaveMetric(results);
         }
         delete benchmarks[benchmarkOpts.stageId];
