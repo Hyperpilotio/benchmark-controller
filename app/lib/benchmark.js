@@ -11,8 +11,8 @@ function BenchmarkException(message) {
 }
 
 function Benchmark(options) {
-    if (options.loadTest === undefined) {
-      throw new BenchmarkException("Initialization Failed");
+    if (options.loadTest === undefined || options.loadTest === null) {
+      throw new BenchmarkException("Load test not found");
     }
     this.initialize = options.initialize;
     this.loadTest = options.loadTest;
