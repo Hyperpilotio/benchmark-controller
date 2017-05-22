@@ -61,14 +61,14 @@ app.post('/', function(req, res) {
     const benchmarkOpts = generateBenchmarkOpts(req.body);
 
     runBenchmark(benchmarkOpts, function(err, results) {
-        // If the reuturned object is empty pass null to the template for the results object.
+        // If the returned object is empty pass null to the template for the results object.
         // This will make it easier to determine whether to display an error or not.
         outputResults = null;
 
         if (err === null) {
             outputResults = results;
 
-            res.render('results', {
+            res.status(200).render('results', {
                 "results": outputResults,
                 "target_host": req.body.target_host,
                 "target_port": req.body.target_port,
@@ -79,7 +79,7 @@ app.post('/', function(req, res) {
 
             metricModel.SaveMetric(outputResults);
         } else {
-            res.render('results', {
+            res.status(404).json({
                 "results": null,
                 "target_host": req.body.target_host,
                 "target_port": req.body.target_port,
@@ -109,9 +109,9 @@ app.post('/api/benchmarks', function(req, res) {
     res.contentType('application/json');
 
     const benchmarkOpts = generateBenchmarkOpts(req.body);
+
     if (benchmarks[benchmarkOpts.stageId] && benchmarks[benchmarkOpts.stageId].status === "running") {
-      res.status(400);
-      res.json({"error": "Benchmark for stage Id " + benchmarkOpts.stageId + " already running"});
+      res.status(400).json({"error": "Benchmark for stage Id " + benchmarkOpts.stageId + " already running"});
       return
     }
 
@@ -119,12 +119,10 @@ app.post('/api/benchmarks', function(req, res) {
 
     runBenchmark(benchmarkOpts, function(err, results) {
         if (err !== null) {
-            res.status(500);
-            res.json({"error": "Error running benchmark: " + err});
+            res.status(500).json({"error": "Error running benchmark: " + err});
             benchmarks[benchmarkOpts.stageId].status = "failed";
         } else {
-            res.status(200);
-            res.json(results);
+            res.status(200).json(results);
             metricModel.SaveMetric(results);
             benchmarks[benchmarkOpts.stageId].status = "success";
         }
