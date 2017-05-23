@@ -15,12 +15,12 @@ const config = require('../config/config.js');
 const metricModel = function() {
     switch (config.store.type) {
     case 'mongo':
-        return new require('./mongodb.js').Metrics;
+        return new require('./mongodb.js').Metric;
     case 'influx':
         return require('./influxdb.js');
     case 'file':
-        var dbClass = require('./file.js').Metrics;
-        return new dbClass()
+        var dbClass = require('./file.js').Metric;
+        return new dbClass();
     }
 }();
 

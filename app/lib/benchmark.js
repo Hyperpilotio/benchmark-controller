@@ -66,6 +66,9 @@ Benchmark.prototype.run = function(commandObj, callback) {
 
     child.on('error', function(error) {
         console.log("Error running child process [%s]: %s", commandObj.path, error);
+        if (!isCallbackUndefined) {
+          callback(new Error(error), null);
+        }
     });
 
     // When benchmark exits convert the csv output to json objects and return to the caller.

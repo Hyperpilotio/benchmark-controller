@@ -11,5 +11,5 @@ class FileLogger {
      }
 }
 
-db.Metrics = FileLogger
+db.Metric = FileLogger
 module.exports = db
