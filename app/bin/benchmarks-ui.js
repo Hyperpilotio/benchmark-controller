@@ -92,7 +92,8 @@ app.post('/', function(req, res) {
 });
 
 app.get('/api/benchmarks/:stageId', function(req, res) {
-    if (benchmarks[benchmarkOpts.stageId]) {
+    stageId = req.params.stageId
+    if (benchmarks[stageId]) {
         res.status(200);
     } else {
         res.status(404);
