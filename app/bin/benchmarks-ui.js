@@ -15,7 +15,7 @@ const config = require('../config/config.js');
 const metricModel = function() {
     switch (config.store.type) {
     case 'mongo':
-        return new require('./mongodb.js').Metric;
+        return new require('./mongodb.js').Metric();
     case 'influx':
         return require('./influxdb.js');
     case 'file':
