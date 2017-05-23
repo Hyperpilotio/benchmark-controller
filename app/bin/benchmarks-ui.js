@@ -33,7 +33,7 @@ const generateBenchmarkOpts = function(requestBody) {
     };
 };
 
-benchmarks = {}
+var benchmarks = {}
 
 // Initialize the express application. Use Jade as the view engine
 const app = express();
@@ -96,6 +96,7 @@ app.get('/api/benchmarks/:stageId', function(req, res) {
     stageId = req.params.stageId
     if (benchmarks[stageId]) {
         res.status(200);
+        res.json(benchmarks[stageId]);
     } else {
         res.status(404);
     }
@@ -108,25 +109,26 @@ app.post('/api/benchmarks', function(req, res) {
     res.contentType('application/json');
 
     const benchmarkOpts = generateBenchmarkOpts(req.body);
-
-    if (benchmarks[benchmarkOpts.stageId]) {
+    if (benchmarks[benchmarkOpts.stageId] && benchmarks[benchmarkOpts.stageId].status === "running") {
       res.status(400);
       res.json({"error": "Benchmark for stage Id " + benchmarkOpts.stageId + " already running"});
       return
     }
 
-    benchmarks[benchmarkOpts.stageId] = benchmarkOpts;
+    benchmarks[benchmarkOpts.stageId] = {"opts": benchmarkOpts, "status": "running"};
 
     runBenchmark(benchmarkOpts, function(err, results) {
         if (err !== null) {
             res.status(500);
             res.json({"error": "Error running benchmark: " + err});
+            benchmarks[benchmarkOpts.stageId].status = "failed";
         } else {
             res.status(200);
             res.json(results);
             metricModel.SaveMetric(results);
+            benchmarks[benchmarkOpts.stageId].status = "success";
         }
-        delete benchmarks[benchmarkOpts.stageId];
+
     });
 });
 
