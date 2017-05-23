@@ -92,6 +92,7 @@ app.post('/', function(req, res) {
 });
 
 app.get('/api/benchmarks/:stageId', function(req, res) {
+    res.contentType('application/json');
     stageId = req.params.stageId
     if (benchmarks[stageId]) {
         res.status(200);
