@@ -16,25 +16,30 @@ function Benchmark(options) {
     this.results = []
 }
 
+function createRunFunc(that, loadTest) {
+  return function(done) {
+    that.run(loadTest.command, loadTest.intensity, done);
+  };
+}
+
 Benchmark.prototype.flow = function(callback) {
     var that = this;
     var funcs = []
     if (that.initialize !== undefined && that.initialize !== null) {
       initialize = that.initialize;
       funcs.push(function(done) {
-        that.run(initialize, that, done);
+        that.run(initialize, null, done);
       });
     }
-    for (var i = 0, len = this.loadTests.length; i < len; i++) {
-      loadTest = that.loadTests[i];
-      funcs.push(function(done) {
-        that.run(loadTest.command, true, done);
-      });
+
+  for (var i = 0; i < that.loadTests.length; i++) {
+      funcs.push(createRunFunc(that, that.loadTests[i]));
     }
+
     if (that.cleanup !== undefined && that.cleanup !== null) {
       cleanup = that.cleanup;
       funcs.push(function(done) {
-        that.run(cleanup, false, done);
+        that.run(cleanup, null, done);
       });
     }
 
@@ -45,7 +50,7 @@ Benchmark.prototype.flow = function(callback) {
     });
 };
 
-Benchmark.prototype.run = function(commandObj, parseResults, callback) {
+Benchmark.prototype.run = function(commandObj, intensity, callback) {
     var that = this;
     // Add the number of requests set to the arguments.
     const args = commandObj.args;
@@ -78,13 +83,14 @@ Benchmark.prototype.run = function(commandObj, parseResults, callback) {
         if (exitCode !== 0) {
             console.log("Child process exited with code: " + exitCode);
             callback(new Error(error_output));
-        } else if (parseResults) {
+        } else if (intensity) {
             // Parse the output of benchmark to an object.
             const parser = new Parser(commandObj);
             const lines = output.split("\n");
             const benchmarkObj = parser.processLines(lines);;
             // Return the resulting benchmarks data object.
-            that.results.push(benchmarkObj);
+            console.log(intensity);
+            that.results.push({"intensity": intensity, "results": benchmarkObj});
             callback();
         } else {
             callback();
