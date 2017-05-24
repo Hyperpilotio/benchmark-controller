@@ -6,43 +6,42 @@ const async = require('async');
 const spawn = require('child_process').spawn;
 const Parser = require('../extension-lib/parser.js');
 
-function BenchmarkException(message) {
-    this.name = "BenchmarkException";
-    this.message = message;
-}
-
 function Benchmark(options) {
-    if (options.loadTest === undefined || options.loadTest === null) {
-      throw new BenchmarkException("Load test not found");
+    if (options.loadTests === undefined || options.loadTests === null) {
+      throw new Error("Load test not found in benchmark");
     }
     this.initialize = options.initialize;
-    this.loadTest = options.loadTest;
+    this.loadTests = options.loadTests;
     this.cleanup = options.cleanup;
-    this.results = {}
+    this.results = []
 }
 
 Benchmark.prototype.flow = function(callback) {
     var that = this;
-    async.series([
-      function(done) {
-        if (that.initialize !== undefined && that.initialize !== null) {
-            that.run(that.initialize, that, done);
-        } else {
-          done();
-        }
-      },
-      function(done) {
-        that.run(that.loadTest, true, done);
-      },
-      function(done) {
-        if (that.cleanup !== undefined && that.cleanup !== null) {
-            that.run(that.cleanup, false, done);
-        } else {
-          done();
-        }
-      }
-    ], function(err) {
-      callback(err, that.results);
+    var funcs = []
+    if (that.initialize !== undefined && that.initialize !== null) {
+      initialize = that.initialize;
+      funcs.push(function(done) {
+        that.run(initialize, that, done);
+      });
+    }
+    for (var i = 0, len = this.loadTests.length; i < len; i++) {
+      loadTest = that.loadTests[i];
+      funcs.push(function(done) {
+        that.run(loadTest.command, true, done);
+      });
+    }
+    if (that.cleanup !== undefined && that.cleanup !== null) {
+      cleanup = that.cleanup;
+      funcs.push(function(done) {
+        that.run(cleanup, false, done);
+      });
+    }
+
+    async.series(
+      funcs,
+      function(err) {
+        callback(err, that.results);
     });
 };
 
@@ -85,7 +84,7 @@ Benchmark.prototype.run = function(commandObj, parseResults, callback) {
             const lines = output.split("\n");
             const benchmarkObj = parser.processLines(lines);;
             // Return the resulting benchmarks data object.
-            that.results = benchmarkObj;
+            that.results.push(benchmarkObj);
             callback();
         } else {
             callback();

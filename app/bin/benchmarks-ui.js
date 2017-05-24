@@ -27,7 +27,7 @@ const metricModel = function() {
 const generateBenchmarkOpts = function(requestBody) {
     return {
         initialize: requestBody.initialize,
-        loadTest: requestBody.loadTest,
+        loadTests: requestBody.loadTests,
         cleanup: requestBody.cleanup,
         stageId: requestBody.stageId
     };
@@ -55,6 +55,7 @@ app.get('/', function(req, res) {
 });
 
 app.post('/', function(req, res) {
+    console.log(req.body);
     /*
      * POST route for form submit runs benchmark and displays results.
      */
@@ -77,7 +78,9 @@ app.post('/', function(req, res) {
                 "error": null
             });
 
-            metricModel.SaveMetric(outputResults);
+            for (let result in outputResults) {
+              metricModel.SaveMetric(result);
+            }
         } else {
             res.status(404).json({
                 "results": null,
@@ -119,14 +122,16 @@ app.post('/api/benchmarks', function(req, res) {
 
     runBenchmark(benchmarkOpts, function(err, results) {
         if (err !== null) {
-            res.status(500).json({"error": "Error running benchmark: " + err});
+            console.log("Error found with benchmark: " + err.Message);
+            res.status(500).json({"error": "Error running benchmark: " + err.Message});
             benchmarks[benchmarkOpts.stageId].status = "failed";
         } else {
-            res.status(200).json(results);
-            metricModel.SaveMetric(results);
+            for (let result in results) {
+              metricModel.SaveMetric(result);
+            }
             benchmarks[benchmarkOpts.stageId].status = "success";
+            res.status(200).json(results);
         }
-
     });
 });
 
@@ -144,12 +149,16 @@ var runBenchmark = function(options, callback) {
      */
 
     // Assume the options sent are options appropriate for Benchmark
-    const benchmark = new Benchmark(options);
+    try {
+      const benchmark = new Benchmark(options);
+      console.log("Running benchmark id [%s]", options.stageId);
 
-    console.log("Running benchmark id [%s]", options.stageId);
-
-    // Run the benchmark and pass the output to the calling function.
-    benchmark.flow(function(err, output) {
-        callback(err, output);
-    });
+      // Run the benchmark and pass the output to the calling function.
+      benchmark.flow(function(err, output) {
+          callback(err, output);
+      });
+    } catch (err) {
+      console.log(err);
+      callback(err, null);
+    }
 };
