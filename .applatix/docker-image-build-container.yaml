@@ -1,0 +1,22 @@
+---
+type: container
+name: docker-image-build-container
+description: build docker image
+inputs:
+  parameters:
+    code:
+    version:
+    docker_username:
+    docker_password:
+  artifacts:
+  - from: "%%code%%"
+    path: "/app"
+container:
+  image: docker:1.12
+  command: "cd /app &&
+              docker login -u %%docker_username%% -p %%docker_password%% &&
+              docker build -f Dockerfile -t hyperpilot/benchmark-controller:%%version%% . &&
+              docker push hyperpilot/benchmark-controller:%%version%%"
+labels:
+    "ax_ea_docker_enable": '{ "graph-storage-name": "benchmark-controller", "graph-storage-size": "10Gi", "cpu_cores":"0.5", "mem_mib":"800"}'
+

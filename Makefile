@@ -1,7 +1,7 @@
 default: build-docker
 
 build-docker:
-	sudo docker build -t hyperpilot/benchmark-controller .
+	docker build -e "NODE_ENV=production" -t hyperpilot/benchmark-controller .
 
 docker-push:
-	sudo docker push hyperpilot/benchmark-controller
+	docker push hyperpilot/benchmark-controller

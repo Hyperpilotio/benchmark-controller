@@ -4,7 +4,9 @@
   "description": "A generic Web GUI for benchmarking performance",
   "main": "bin/benchmarks-ui.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": " NODE_ENV=test ./node_modules/mocha/bin/mocha -R spec test/",
+    "start": "node bin/benchmarks-ui.js",
+    "jscs": "./node_modules/jscs/bin/jscs -c .jscsrc --fix ."
   },
   "repository": {
     "type": "git",
@@ -24,5 +26,9 @@
     "mongoose": "^4.7.8",
     "os": "^0.1.1",
     "async": "~2.4.1"
+  },
+  "devDependencies": {
+    "jscs": "^3.0.7",
+    "mocha": "^3.4.1"
   }
 }

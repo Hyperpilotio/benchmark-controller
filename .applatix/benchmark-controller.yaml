@@ -1,0 +1,25 @@
+---
+type: workflow
+name: benchmark-controller-workflow
+description: benchmark-controller
+inputs:
+  parameters:
+    commit:
+      default: "%%session.commit%%"
+    repo:
+      default: "%%session.repo%%"
+    docker_username:
+    docker_password:
+    version:
+      default: "test"
+steps:
+- checkout:
+    template: axscm-checkout
+- test:
+    template: node-test
+    parameters:
+      code: "%%steps.checkout.code%%"
+- build:
+    template: docker-image-build-container
+    parameters:
+      code: "%%steps.checkout.code%%"

@@ -8,11 +8,13 @@ This is a simple web app frontend for running the benchmark tool.
 
 ## Installation
 
+`Make sure you are using nodejs 7.6.x or latest version`
+
 To run this application you will need to install [node](https://nodejs.org/en/download/).
 To install from Github
 
     $ git clone https://github.com/hyperpilotio/benchmark-controller.git
-    $ npm install
+    $ yarn
 
 ## Usage
 

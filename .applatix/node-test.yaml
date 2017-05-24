@@ -1,0 +1,24 @@
+---
+type: container
+name: node-test
+description: This is the template for building Node component.
+container:
+  resources:
+    mem_mib: 1024
+    cpu_cores: 0.3
+  image: "node:argon"
+  docker_options: ""
+  command: "sh -c 'cd /app/app && npm install && npm run test'"
+inputs:
+  artifacts:
+  - from: "%%code%%"
+    path: "/app"
+  parameters:
+    commit:
+      default: "%%session.commit%%"
+    code:
+outputs:
+  artifacts:
+    code:
+      path: "/app"
+labels:
