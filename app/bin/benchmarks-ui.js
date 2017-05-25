@@ -155,7 +155,7 @@ var runBenchmark = function(options, callback) {
     }
 };
 
-// Start the application. Get bind details from cfenv
+// Start the application.
 exports.app = function() {
     let server = app.listen(config.port, config.host, function () {
         var host = server.address().address;
