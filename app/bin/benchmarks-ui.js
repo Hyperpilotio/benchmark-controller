@@ -135,14 +135,6 @@ app.post('/api/benchmarks', function(req, res) {
     });
 });
 
-// Start the application. Get bind details from cfenv
-var server = app.listen(config.port, config.host, function() {
-    var host = server.address().address;
-    var port = server.address().port;
-
-    console.log('benchmarks-ui running on %s:%d', host, port);
-});
-
 var runBenchmark = function(options, callback) {
     /**
      * Run a benchmark for the server given in options.
@@ -162,3 +154,13 @@ var runBenchmark = function(options, callback) {
       callback(err, null);
     }
 };
+
+// Start the application.
+exports.app = function() {
+    let server = app.listen(config.port, config.host, function () {
+        var host = server.address().address;
+        var port = server.address().port;
+        console.log('benchmarks-ui running on %s:%d', host, port);
+    });
+    return server;
+}
