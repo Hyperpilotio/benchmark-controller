@@ -5,7 +5,7 @@
   "main": "bin/benchmarks-ui.js",
   "scripts": {
     "test": " NODE_ENV=test ./node_modules/mocha/bin/mocha -R spec test/",
-    "start": "node bin/benchmarks-ui.js",
+    "start": "node bin/index.js",
     "jscs": "./node_modules/jscs/bin/jscs -c .jscsrc --fix ."
   },
   "repository": {
@@ -19,13 +19,14 @@
   },
   "homepage": "https://github.com/compybara/redis-benchmarks-ui#readme",
   "dependencies": {
+    "async": "~2.4.1",
     "body-parser": "^1.15.2",
     "cfenv": "^1.0.3",
     "express": "^4.14.0",
     "jade": "^1.11.0",
     "mongoose": "^4.7.8",
     "os": "^0.1.1",
-    "async": "~2.4.1"
+    "request": "^2.81.0"
   },
   "devDependencies": {
     "jscs": "^3.0.7",
