@@ -1,0 +1,44 @@
+const PARSER_DATASET = {
+    'redis': [
+        {
+            'input': `"PING_INLINE","23809.52"
+"PING_BULK","58823.53"
+"SET","58823.53"
+"GET","58823.53"
+"INCR","52631.58"
+"LPUSH","55555.56"
+"RPUSH","58823.53"
+"LPOP","55555.56"
+"RPOP","52631.58"
+"SADD","58823.53"
+"SPOP","55555.56"
+"LPUSH (needed to benchmark LRANGE)","55555.56"
+"LRANGE_100 (first 100 elements)","35714.29"
+"LRANGE_300 (first 300 elements)","20408.16"
+"LRANGE_500 (first 450 elements)","15873.02"
+"LRANGE_600 (first 600 elements)","12820.51"
+"MSET (10 keys)","52631.58"`,
+            'expect': {
+                'PING_INLINE': '23809.52',
+                'PING_BULK': '58823.53',
+                'SET': '58823.53',
+                'GET': '58823.53',
+                'INCR': '52631.58',
+                'LPUSH': '55555.56',
+                'RPUSH': '58823.53',
+                'LPOP': '55555.56',
+                'RPOP': '52631.58',
+                'SADD': '58823.53',
+                'SPOP': '55555.56' ,
+                'LPUSH (needed to benchmark LRANGE)': '55555.56',
+                'LRANGE_100 (first 100 elements)': '35714.29',
+                'LRANGE_300 (first 300 elements)': '20408.16',
+                'LRANGE_500 (first 450 elements)': '15873.02',
+                'LRANGE_600 (first 600 elements)': '12820.51',
+                'MSET (10 keys)': '52631.58'
+              }
+          }
+    ]
+  };
+
+module.exports = PARSER_DATASET;
