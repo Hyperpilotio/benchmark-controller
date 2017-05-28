@@ -10,7 +10,7 @@ describe('Parser', function() {
           const parser = new Parser({});
           const lines = PARSER_DATASET.default[i].input.split('\n');
           const benchmarkObj = parser.processLines(lines);
-          assert.deepEqual(PARSER_DATASET.default[i].expect, benchmarkObj);
+          assert.deepEqual(benchmarkObj, PARSER_DATASET.default[i].expect);
         }
       });
 
@@ -25,7 +25,7 @@ describe('Parser', function() {
           const lines = PARSER_DATASET.redis[i].input.split('\n');
           const benchmarkObj = parser.processLines(lines);
 
-          assert.deepEqual(PARSER_DATASET.redis[i].expect, benchmarkObj);
+          assert.deepEqual(benchmarkObj, PARSER_DATASET.redis[i].expect);
         }
       });
   });

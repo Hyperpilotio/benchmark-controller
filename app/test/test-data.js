@@ -48,12 +48,46 @@ const PARSER_DATASET = {
   };
 
 const BENCHMARK_DATASET = {
+    'flow': [{
+      'input': {
+          'options': {
+              'loadTests': [
+                  {
+                      'command': {
+                          'path': 'echo',
+                          'args': ['Hyperpilot is wonderful!']
+                        },
+                      'intensity': 1
+                    },
+                  {
+                      'command': {
+                          'path': 'echo',
+                          'args': ['Hyperpilot is great!']
+                        },
+                      'intensity': 2
+                    }
+              ]
+            },
+        },
+      'expect': [{
+          'intensity': 1,
+          'results': {
+              '0': 'Hyperpilot is wonderful!'
+            }
+        },
+     {
+          'intensity': 2,
+          'results': {
+              '0': 'Hyperpilot is great!'
+            }
+        }]
+    }],
     'run': [{
         'input': {
             'options': {
                 'loadTests': []
               },
-            'commendObj': {
+            'commandObj': {
                 'path': 'echo',
                 'args': ['Hyperpilot is awesome']
               },

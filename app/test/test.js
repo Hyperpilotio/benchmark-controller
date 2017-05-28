@@ -18,7 +18,7 @@ describe('Start server', function() {
       request.post('http://localhost:6001', {},
       function(err, res, body) {
         assert.equal(404, res.statusCode);
-        assert.equal(true, util.isJSON(res.body));
+        assert.equal(util.isJSON(res.body), true);
         done();
       });
     });
@@ -30,7 +30,7 @@ describe('Start server', function() {
       request.post('http://localhost:6001/api/benchmarks', {},
       function(err, res, body) {
         assert.equal(500, res.statusCode);
-        assert.equal(true, util.isJSON(res.body));
+        assert.equal(util.isJSON(res.body), true);
         done();
       });
     });
