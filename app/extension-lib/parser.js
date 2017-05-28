@@ -10,12 +10,8 @@ class Parser {
       if (lines[i] === '' || lines[i] === '\n') {
         continue;
       }
-      // Clean up quotes from each line
-      let noquotes = lines[i].replace(/["]+/g, '');
-
-      // Set the first column to a key and the second column to the value in an object.
-      let columns = noquotes.split(',');
-      benchmarkObj[columns[0]] = columns[1];
+      let columns = lines[i].split('\n');
+      benchmarkObj[i] = columns[0];
     }
 
     return benchmarkObj;

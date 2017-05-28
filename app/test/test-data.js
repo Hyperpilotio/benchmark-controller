@@ -1,4 +1,10 @@
 const PARSER_DATASET = {
+    'default': [{
+        'input': 'Hyperpilot is awesome',
+        'expect': {
+                '0': 'Hyperpilot is awesome'
+              }
+      }],
     'redis': [
         {
             'input': `"PING_INLINE","23809.52"
@@ -41,4 +47,28 @@ const PARSER_DATASET = {
     ]
   };
 
-module.exports = PARSER_DATASET;
+const BENCHMARK_DATASET = {
+    'run': [{
+        'input': {
+            'options': {
+                'loadTests': []
+              },
+            'commendObj': {
+                'path': 'echo',
+                'args': ['Hyperpilot is awesome']
+              },
+            'intensity': 1
+          },
+        'expect': {
+            'intensity': 1,
+            results: {
+                '0': 'Hyperpilot is awesome'
+              }
+          }
+      }]
+  };
+
+module.exports = {
+    'BENCHMARK_DATASET': BENCHMARK_DATASET,
+    'PARSER_DATASET': PARSER_DATASET
+  };
