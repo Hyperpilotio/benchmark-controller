@@ -6,7 +6,7 @@ container:
   resources:
     mem_mib: 1024
     cpu_cores: 0.3
-  image: "node:argon"
+  image: "node:7.10.0-alpine"
   docker_options: ""
   command: "sh -c 'cd /app/app && npm install && npm run test'"
 inputs:

@@ -1,4 +1,4 @@
-const isJSON = function (item) {
+const isJSON = function(item) {
   item = typeof item !== 'string' ? JSON.stringify(item) : item;
 
   try {
