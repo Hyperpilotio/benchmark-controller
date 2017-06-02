@@ -1,0 +1,23 @@
+{
+    "stageId": "a",
+    "loadTests": [
+        {
+            "command": {
+                "path": "echo",
+                "args": [
+                    "10000"
+                ]
+            },
+            "intensity": 10
+        },
+        {
+            "command": {
+                "path": "echo",
+                "args": [
+                    "50000"
+                ]
+            },
+            "intensity": 50
+        }
+    ]
+}

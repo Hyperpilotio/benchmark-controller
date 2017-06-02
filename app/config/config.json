@@ -1,8 +1,8 @@
 {
     "store": {
-        "type": "file",
-        "host": "mongosrv",
+        "type": "mongo",
+        "host": "localhost",
         "port": "27017",
-        "dbName": "redis"
+        "dbName": "benchmarks"
     }
 }

@@ -7,6 +7,7 @@
 var express = require('express');
 var fs = require('fs');
 var Benchmark = require('../lib/benchmark');
+var Calibrate = require('../lib/calibration');
 var bodyParser = require('body-parser');
 var os = require('os');
 var querystring = require("querystring");
@@ -105,6 +106,42 @@ app.get('/api/benchmarks/:stageId', function(req, res) {
     }
 });
 
+app.post('/api/calibrate', function(req, res) {
+    res.contentType('application/json');
+    requestBody = req.body
+
+    request = {
+        initialize: requestBody.initialize,
+        loadTest: requestBody.loadTest,
+        slo: requestBody.slo,
+        stageId: requestBody.stageId
+    };
+
+    if (benchmarks[request.stageId] && benchmarks[request.stageId].status === "running") {
+      res.status(400).json({"error": "Benchmark for stage Id " + benchmarkOpts.stageId + " already running"});
+      return
+    }
+
+    benchmarks[request.stageId] = {"opts": request, "status": "running", "type": "calibrate"};
+
+    runCalibration(request, function(err, results) {
+        if (err !== null) {
+            console.log("Error running calibration: " + err.Message);
+            res.status(500).json({"error": "Error running calibration: " + err.Message});
+            benchmarks[request.stageId].status = "failed";
+        } else {
+            console.log("Calibration finished for stage "  + request.stageId);
+            for (let result in results.results) {
+              metricModel.SaveMetric(result);
+            }
+            metricModel.SaveMetric({stageId: request.stageId, finalIntensityArgs: result.finalIntensityArgs});
+            benchmarks[request.stageId].status = "success";
+            res.status(200).json(result.finalIntensityArgs);
+        }
+    });
+
+});
+
 app.post('/api/benchmarks', function(req, res) {
     /*
      * Provide an API endpoint for running a benchmark and getting back a raw JSON.
@@ -118,7 +155,7 @@ app.post('/api/benchmarks', function(req, res) {
       return
     }
 
-    benchmarks[benchmarkOpts.stageId] = {"opts": benchmarkOpts, "status": "running"};
+    benchmarks[benchmarkOpts.stageId] = {"opts": benchmarkOpts, "status": "running", "type": "benchmark"};
 
     runBenchmark(benchmarkOpts, function(err, results) {
         if (err !== null) {
@@ -126,6 +163,7 @@ app.post('/api/benchmarks', function(req, res) {
             res.status(500).json({"error": "Error running benchmark: " + err.Message});
             benchmarks[benchmarkOpts.stageId].status = "failed";
         } else {
+            console.log("Benchmark finished for stage " + benchmarkOpts.stageId);
             for (let result in results) {
               metricModel.SaveMetric(result);
             }
@@ -150,8 +188,25 @@ var runBenchmark = function(options, callback) {
           callback(err, output);
       });
     } catch (err) {
-      console.log(err);
-      callback(err, null);
+      callback(new Error(err), null);
+    }
+};
+
+var runCalibration = function(options, callback) {
+    /**
+     * Run calibration for the server given in options.
+     */
+
+    try {
+      const calibration = new Calibration(options);
+      console.log("Running calibration id [%s]", options.stageId);
+
+      // Run the benchmark and pass the output to the calling function.
+      calibration.flow(function(err, output) {
+          callback(err, output);
+      });
+    } catch (err) {
+      callback(new Error(err), null);
     }
 };
 
