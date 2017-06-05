@@ -7,7 +7,7 @@
 var express = require('express');
 var fs = require('fs');
 var Benchmark = require('../lib/benchmark');
-var Calibrate = require('../lib/calibration');
+var Calibration = require('../lib/calibration');
 var bodyParser = require('body-parser');
 var os = require('os');
 var querystring = require("querystring");
@@ -35,6 +35,7 @@ const generateBenchmarkOpts = function(requestBody) {
 };
 
 var benchmarks = {}
+var calibrations = {}
 
 // Initialize the express application. Use Jade as the view engine
 const app = express();
@@ -106,6 +107,17 @@ app.get('/api/benchmarks/:stageId', function(req, res) {
     }
 });
 
+app.get('/api/calibrate/:stageId', function(req, res) {
+    res.contentType('application/json');
+    stageId = req.params.stageId
+    if (calibrations[stageId]) {
+        res.status(200);
+        res.json(calibrations[stageId]);
+    } else {
+        res.status(404);
+    }
+});
+
 app.post('/api/calibrate', function(req, res) {
     res.contentType('application/json');
     requestBody = req.body
@@ -117,29 +129,34 @@ app.post('/api/calibrate', function(req, res) {
         stageId: requestBody.stageId
     };
 
-    if (benchmarks[request.stageId] && benchmarks[request.stageId].status === "running") {
+    if (calibrations[request.stageId] && calibrations[request.stageId].status === "running") {
       res.status(400).json({"error": "Benchmark for stage Id " + benchmarkOpts.stageId + " already running"});
       return
     }
 
-    benchmarks[request.stageId] = {"opts": request, "status": "running", "type": "calibrate"};
+    calibrations[request.stageId] = {"opts": request, "status": "running"};
 
     runCalibration(request, function(err, results) {
         if (err !== null) {
-            console.log("Error running calibration: " + err.Message);
-            res.status(500).json({"error": "Error running calibration: " + err.Message});
-            benchmarks[request.stageId].status = "failed";
+            console.log("Error running calibration:");
+            console.log(err);
+            res.status(500).json({"error": "Error running calibration: " + err.message});
+            calibration = calibrations[request.stageId]
+            calibration.status = "failed";
+            calibration.error = err.message
         } else {
             console.log("Calibration finished for stage "  + request.stageId);
-            for (let result in results.results) {
+            for (let result in results.runResults) {
               metricModel.SaveMetric(result);
             }
-            metricModel.SaveMetric({stageId: request.stageId, finalIntensityArgs: result.finalIntensityArgs});
-            benchmarks[request.stageId].status = "success";
-            res.status(200).json(result.finalIntensityArgs);
+            metricModel.SaveMetric({stageId: request.stageId, finalIntensityArgs: results.finalIntensityArgs});
+            calibration = calibrations[request.stageId]
+            calibration.status = "success";
+            calibration.results = results.finalIntensityArgs;
         }
     });
 
+    res.status(202);
 });
 
 app.post('/api/benchmarks', function(req, res) {
@@ -155,12 +172,13 @@ app.post('/api/benchmarks', function(req, res) {
       return
     }
 
-    benchmarks[benchmarkOpts.stageId] = {"opts": benchmarkOpts, "status": "running", "type": "benchmark"};
+    benchmarks[benchmarkOpts.stageId] = {"opts": benchmarkOpts, "status": "running"};
 
     runBenchmark(benchmarkOpts, function(err, results) {
         if (err !== null) {
-            console.log("Error found with benchmark: " + err.Message);
-            res.status(500).json({"error": "Error running benchmark: " + err.Message});
+            console.log("Error found with benchmark:");
+            console.log(err);
+            res.status(500).json({"error": "Error running benchmark: " + err.message});
             benchmarks[benchmarkOpts.stageId].status = "failed";
         } else {
             console.log("Benchmark finished for stage " + benchmarkOpts.stageId);
@@ -188,7 +206,7 @@ var runBenchmark = function(options, callback) {
           callback(err, output);
       });
     } catch (err) {
-      callback(new Error(err), null);
+      callback(err, null);
     }
 };
 
@@ -206,7 +224,7 @@ var runCalibration = function(options, callback) {
           callback(err, output);
       });
     } catch (err) {
-      callback(new Error(err), null);
+      callback(err, null);
     }
 };
 

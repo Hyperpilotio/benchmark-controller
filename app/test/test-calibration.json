@@ -1,0 +1,17 @@
+{
+    "loadTest": {
+        "intensityArgs": [
+            {
+                "name": "argA",
+                "startingValue": 10,
+                "step": 5
+            }
+        ],
+        "path": "echo"
+    },
+    "slo": {
+        "metric": 0,
+        "value": 50
+    },
+    "stageId": "abc"
+}
