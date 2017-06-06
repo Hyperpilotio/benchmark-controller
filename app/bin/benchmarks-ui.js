@@ -152,7 +152,7 @@ app.post('/api/calibrate', function(req, res) {
             metricModel.SaveMetric({stageId: request.stageId, finalIntensityArgs: results.finalIntensityArgs});
             calibration = calibrations[request.stageId]
             calibration.status = "success";
-            calibration.results = results.finalIntensityArgs;
+            calibration.results = {finalIntensityArgs: results.finalIntensityArgs, runResults: results.runResults}
         }
     });
 
