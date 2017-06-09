@@ -6,18 +6,19 @@ const async = require('async');
 const commandUtil = require('./commandUtil.js');
 
 function Benchmark(options) {
-    if (options.loadTests === undefined || options.loadTests === null) {
+    if (options.loadTest === undefined || options.loadTest === null) {
       throw new Error("Load test not found in benchmark");
     }
     this.initialize = options.initialize;
-    this.loadTests = options.loadTests;
+    this.loadTest = options.loadTest;
+    this.intensity = options.intensity;
     this.cleanup = options.cleanup;
     this.results = []
 }
 
-function createRunFunc(that, loadTest) {
+function createRunFunc(that) {
   return function(done) {
-    commandUtil.RunBenchmark(loadTest.command, that.results, {intensity: loadTest.intensity}, done);
+    commandUtil.RunBenchmark(that.loadTest, that.results, {intensity: that.intensity}, done);
   };
 }
 
@@ -31,9 +32,7 @@ Benchmark.prototype.flow = function(callback) {
       });
     }
 
-    for (var i = 0; i < that.loadTests.length; i++) {
-      funcs.push(createRunFunc(that, that.loadTests[i]));
-    }
+    funcs.push(createRunFunc(that));
 
     if (that.cleanup !== undefined && that.cleanup !== null) {
       cleanup = that.cleanup;
@@ -45,7 +44,8 @@ Benchmark.prototype.flow = function(callback) {
     async.series(
       funcs,
       function(err) {
-        callback(err, that.results);
+        // We assume one result from one load test run for now.
+        callback(err, that.results[0]);
     });
 };
 

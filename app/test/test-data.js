@@ -51,41 +51,25 @@ const BENCHMARK_DATASET = {
     'flow': [{
       'input': {
           'options': {
-              'loadTests': [
+              'loadTest':
                   {
-                      'command': {
-                          'path': 'echo',
-                          'args': ['Hyperpilot is wonderful!']
-                        },
-                      'intensity': 1
-                    },
-                  {
-                      'command': {
-                          'path': 'echo',
-                          'args': ['Hyperpilot is great!']
-                        },
-                      'intensity': 2
-                    }
-              ]
+                      'path': 'echo',
+                      'args': ['Hyperpilot is wonderful!']
+                  },
+              'intensity': 1
             },
         },
-      'expect': [{
+      'expect': {
           'intensity': 1,
           'results': {
               '0': 'Hyperpilot is wonderful!'
             }
-        },
-     {
-          'intensity': 2,
-          'results': {
-              '0': 'Hyperpilot is great!'
-            }
-        }]
+        }
     }],
     'run': [{
         'input': {
             'options': {
-                'loadTests': []
+                'loadTest': {}
               },
             'commandObj': {
                 'path': 'echo',

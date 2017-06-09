@@ -25,14 +25,51 @@ const metricModel = function() {
     }
 }();
 
-const generateBenchmarkOpts = function(requestBody) {
-    return {
-        initialize: requestBody.initialize,
-        loadTests: requestBody.loadTests,
-        cleanup: requestBody.cleanup,
-        stageId: requestBody.stageId
-    };
+const checkFieldsExists = function(map, ...fields) {
+    for (var i = 0; i < fields.length; i++) {
+        if (!(fields[i] in map)) {
+            return fields[i];
+        }
+    }
+
+    return null;
 };
+
+const generateBenchmarkOpts = function(requestBody) {
+    field = checkFieldsExists(requestBody, "loadTest", "stageId", "intensity");
+    if (field !== null) {
+        return [{}, "Field not found: " + field];
+    }
+
+    return [
+        {
+            initialize: requestBody.initialize,
+            loadTest: requestBody.loadTest,
+            intensity: requestBody.intensity,
+            cleanup: requestBody.cleanup,
+            stageId: requestBody.stageId
+        },
+        null
+    ];
+};
+
+const generateCalibrationOpts = function(requestBody) {
+    field = checkFieldsExists(requestBody, "loadTest", "slo", "stageId");
+    if (field !== null) {
+        return [{}, "Field not found: " + field];
+    }
+
+    return [
+        {
+            initialize: requestBody.initialize,
+            loadTest: requestBody.loadTest,
+            slo: requestBody.slo,
+            stageId: requestBody.stageId
+        },
+        null
+    ];
+
+}
 
 var benchmarks = {}
 var calibrations = {}
@@ -61,18 +98,18 @@ app.post('/', function(req, res) {
     /*
      * POST route for form submit runs benchmark and displays results.
      */
-    const benchmarkOpts = generateBenchmarkOpts(req.body);
+    [benchmarkOpts, error] = generateBenchmarkOpts(req.body);
+    if (error !== null) {
+        res.status(400).json({"error": error});
+        return
+    }
 
     runBenchmark(benchmarkOpts, function(err, results) {
         // If the returned object is empty pass null to the template for the results object.
         // This will make it easier to determine whether to display an error or not.
-        outputResults = null;
-
         if (err === null) {
-            outputResults = results;
-
             res.status(200).render('results', {
-                "results": outputResults,
+                "results": results,
                 "target_host": req.body.target_host,
                 "target_port": req.body.target_port,
                 "target_pw": req.body.target_pw,
@@ -80,9 +117,7 @@ app.post('/', function(req, res) {
                 "error": null
             });
 
-            for (let result in outputResults) {
-              metricModel.SaveMetric(result);
-            }
+            metricModel.SaveMetric(results);
         } else {
             res.status(404).json({
                 "results": null,
@@ -120,17 +155,14 @@ app.get('/api/calibrate/:stageId', function(req, res) {
 
 app.post('/api/calibrate', function(req, res) {
     res.contentType('application/json');
-    requestBody = req.body
-
-    request = {
-        initialize: requestBody.initialize,
-        loadTest: requestBody.loadTest,
-        slo: requestBody.slo,
-        stageId: requestBody.stageId
-    };
+    [request, error] = generateCalibrationOpts(req.body)
+    if (error !== null) {
+        res.status(400).json({"error": error});
+        return
+    }
 
     if (calibrations[request.stageId] && calibrations[request.stageId].status === "running") {
-      res.status(400).json({"error": "Benchmark for stage Id " + benchmarkOpts.stageId + " already running"});
+      res.status(400).json({"error": "Benchmark for stage Id " + request.stageId + " already running"});
       return
     }
 
@@ -140,7 +172,6 @@ app.post('/api/calibrate', function(req, res) {
         if (err !== null) {
             console.log("Error running calibration:");
             console.log(err);
-            res.status(500).json({"error": "Error running calibration: " + err.message});
             calibration = calibrations[request.stageId]
             calibration.status = "failed";
             calibration.error = err.message
@@ -156,16 +187,20 @@ app.post('/api/calibrate', function(req, res) {
         }
     });
 
-    res.status(202);
+    res.sendStatus(202);
 });
 
 app.post('/api/benchmarks', function(req, res) {
     /*
-     * Provide an API endpoint for running a benchmark and getting back a raw JSON.
+     * Provide an API endpoint for running a benchmark.
      */
     res.contentType('application/json');
 
-    const benchmarkOpts = generateBenchmarkOpts(req.body);
+    [benchmarkOpts, error] = generateBenchmarkOpts(req.body);
+    if (error !== null) {
+        res.status(400).json({"error": error});
+        return
+    }
 
     if (benchmarks[benchmarkOpts.stageId] && benchmarks[benchmarkOpts.stageId].status === "running") {
       res.status(400).json({"error": "Benchmark for stage Id " + benchmarkOpts.stageId + " already running"});
@@ -178,17 +213,22 @@ app.post('/api/benchmarks', function(req, res) {
         if (err !== null) {
             console.log("Error found with benchmark:");
             console.log(err);
-            res.status(500).json({"error": "Error running benchmark: " + err.message});
-            benchmarks[benchmarkOpts.stageId].status = "failed";
+            benchmark = benchmarks[benchmarkOpts.stageId]
+            benchmark.status = "failed";
+            benchmark.error = err.message
+
         } else {
             console.log("Benchmark finished for stage " + benchmarkOpts.stageId);
             for (let result in results) {
               metricModel.SaveMetric(result);
             }
-            benchmarks[benchmarkOpts.stageId].status = "success";
-            res.status(200).json(results);
+            benchmark = benchmarks[benchmarkOpts.stageId]
+            benchmark.status = "success";
+            benchmark.results = results
         }
     });
+
+    res.sendStatus(202);
 });
 
 var runBenchmark = function(options, callback) {
