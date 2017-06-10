@@ -15,6 +15,11 @@ var querystring = require("querystring");
 const config = require('../config/config.js');
 const metricModel = function() {
     switch (config.store.type) {
+    case 'none':
+        var noOpModel = {
+            SaveMetric() {}
+        };
+        return noOpModel;
     case 'mongo':
         return new require('./mongodb.js').Metric();
     case 'influx':
