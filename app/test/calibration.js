@@ -22,9 +22,9 @@ describe('lib/calibration', function() {
                    slo: {value: 100, metric: "key", type: "latency"}
                };
                const calibration = new Calibration(config);
-               calibration.results.push(
+               calibration.summaries.push(
                    {
-                       results: {key: 80},
+                       qos: 80,
                        intensityArgs: {
                            argA: 100,
                            argB: 200
@@ -35,7 +35,7 @@ describe('lib/calibration', function() {
                assert.deepEqual({argA: 110, argB: 220}, result.value.nextArgs);
                done();
            });
-        it('should stop attempting next run when throughput went over slo',
+        it('should stop attempting next run when last max runs reached',
            function(done) {
                config = {
                    initialize: {},
@@ -50,17 +50,17 @@ describe('lib/calibration', function() {
                    slo: {value: 100, metric: "key", type: "throughput"}
                };
                const calibration = new Calibration(config);
-               calibration.results.push(
+               calibration.lastMaxSummary = {qos: 80};
+               calibration.summaries.push(
                    {
-                       results: {key: 101},
+                       qos: 50,
                        intensityArgs: {
                            argA: 20,
                        }
                    });
+               calibration.lastMaxRuns = 5;
                result = calibration.computeNextIntensityArgs();
-               assert.equal(null, result.error);
-               assert.equal(undefined, result.value.nextArgs);
-               assert.deepEqual({argA: 20}, result.value.finalArgs);
+               assert.notEqual(null, result.error);
                done();
            });
     });

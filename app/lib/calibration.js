@@ -7,7 +7,11 @@ const commandUtil = require('./commandUtil.js');
 const types = require('./types.js');
 const Parser = require('../extension-lib/parser.js');
 
-const MAX_RUNS = 50;
+const MAX_STAGES = 50;
+
+const setDefault = function(value, defaultValue) {
+    return (value === undefined) ? defaultValue : value;
+}
 
 function Calibration(options) {
     if (options.loadTest === undefined || options.loadTest === null) {
@@ -16,33 +20,35 @@ function Calibration(options) {
 
     this.initialize = options.initialize;
     this.loadTest = options.loadTest;
-    if (this.loadTest.args === undefined) {
-        this.loadTest.args = [];
-    }
+    this.loadTest.args = setDefault(this.loadTest.args, []);
     this.argValues = {};
     for (i = 0; i < this.loadTest.intensityArgs.length; i++) {
         intensityArg = this.loadTest.intensityArgs[i];
         this.argValues[intensityArg.name] = intensityArg.startingValue;
     }
+    this.runsPerIntensity = setDefault(options.runPerIntensity, 3);
     this.slo = options.slo;
+    // Results stores all the past runs for all intensities
     this.results = []
+    // Stage results stores multiple run results for the current intensity args
+    this.stageResults = []
+    // Summaries stores all the summarized results from the stage results
+    this.summaries = []
+    // Final intensity args stores the final calibrated intensity output
     this.finalIntensityArgs = {}
+    this.lastMaxSummary = {qos: 0.0};
 }
 
-/**
- * Compute the next intensity args to run for calibration.
- * @return Error if error found, otherwise null.
- */
-Calibration.prototype.computeNextIntensityArgs = function() {
-    if (this.results.length == 0) {
+Calibration.prototype.computeNextLatencyArgs = function() {
+    if (this.summaries.length == 0) {
         return new types.Result({error: "No past run results found"});
     }
 
-    lastRunResult = this.results[this.results.length - 1];
-    lastRunMetric = parseFloat(lastRunResult.results[this.slo.metric]);
+    lastRunResult = this.summaries[this.summaries.length - 1];
+    lastRunMetric = lastRunResult.qos;
 
     if (lastRunMetric < this.slo.value) {
-        if (this.results.length == MAX_RUNS) {
+        if (this.summaries.length == MAX_STAGES) {
             return new types.Result({error: "Maximum runs reached"});
         }
 
@@ -54,23 +60,67 @@ Calibration.prototype.computeNextIntensityArgs = function() {
 
         return new types.Result({value: {nextArgs: newIntensityArgs}});
     } else {
-        if (lastRunMetric == this.slo.value || this.slo.type == "throughput") {
+        if (lastRunMetric == this.slo.value) {
             // For throughput slo, we want to find the run that just runs past the goal,
             // assuming we're increasing intesnity over time.
             // For latency slo, we also just return the last run that meets the slo goal.
-            finalIntensityArgs = this.results[this.results.length - 1].intensityArgs;
+            finalIntensityArgs = this.summaries[this.summaries.length - 1].intensityArgs;
             return new types.Result({value: {finalArgs: finalIntensityArgs}});
         }
-
-        // Handling latency that last run went over the slo goal.
 
         if (this.results.length == 1) {
             return new types.Result({error: "No intensities can match sla goal"});
         }
 
         // The last run went over the goal, so we use the previous run's intensity args
-        finalIntensityArgs = this.results[this.results.length - 2].intensityArgs;
+        finalIntensityArgs = this.summaries[this.summaries.length - 2].intensityArgs;
         return new types.Result({value: {finalArgs: finalIntensityArgs}});
+    }
+};
+
+Calibration.prototype.computeNextThroughputArgs = function() {
+    if (this.summaries.length == 0) {
+        return new types.Result({error: "No past run results found"});
+    }
+
+    lastRunResult = this.summaries[this.summaries.length - 1];
+    lastRunMetric = lastRunResult.qos;
+
+    if (lastRunMetric > this.lastMaxSummary.qos) {
+        this.lastMaxSummary = lastRunResult;
+        this.lastMaxRuns = 0;
+    }
+
+    // TODO: Make max runs configurable
+    if (this.lastMaxRuns >= 5 || this.summaries.length == MAX_STAGES) {
+        if (this.slo.value > this.lastMaxSummary.qos) {
+            return new types.Result({error: "Cannot find configuration that meets SLO"});
+        }
+
+        return new types.Result({value: {finalArgs: lastMaxSummary.intensityArgs}});
+    }
+
+    this.lastMaxRuns += 1;
+
+    newIntensityArgs = {}
+    for (i = 0; i < this.loadTest.intensityArgs.length; i++) {
+        intensityArg = this.loadTest.intensityArgs[i];
+        newIntensityArgs[intensityArg.name] = lastRunResult.intensityArgs[intensityArg.name] + intensityArg.step;
+    }
+
+    return new types.Result({value: {nextArgs: newIntensityArgs}});
+}
+
+
+/**
+ * Compute the next intensity args to run for calibration.
+ * @return Error if error found, otherwise null.
+ */
+Calibration.prototype.computeNextIntensityArgs = function() {
+    if (this.slo.type == "throughput") {
+        return this.computeNextThroughputArgs();
+    } else {
+        return this.computeNextLatencyArgs();
     }
 }
 
@@ -87,11 +137,31 @@ function createCalibrationFunc(that, loadTest) {
         command = {path: loadTest.path, args: args}
         console.log("Running calibration benchmark: " + JSON.stringify(command));
 
-        commandUtil.RunBenchmark(command, that.results, {intensityArgs: that.argValues}, function(error) {
+        commandUtil.RunBenchmark(command, that.stageResults, {intensityArgs: that.argValues}, function(error) {
             if (error !== null && error !== undefined) {
                 done(error);
                 return
             }
+
+            if (that.stageResults.length < that.runPerIntensity) {
+                console.log("Running #" + (that.stageResults.length + 1) + " calibration run for the same intensity");
+                createCalibrationFunc(that, loadTest)(done);
+                return
+            }
+
+            lastRunMetrics = 0.0;
+            // Move stage run history into results
+            for (i = 0; i < that.stageResults.length; i++) {
+                lastResults = that.stageResults[i];
+                lastRunMetrics += parseFloat(lastResults.results[that.slo.metric]);
+                that.results.push(lastResults);
+            }
+
+            that.summaries.push({
+                qos: lastRunMetrics / (that.stageResults.length * 1.0),
+                intensityArgs: that.argValues})
+
+            that.stageResults = [];
 
             result = that.computeNextIntensityArgs();
             if (result.error !== null) {
