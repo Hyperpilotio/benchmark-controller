@@ -13,6 +13,7 @@ function Benchmark(options) {
     this.loadTest = options.loadTest;
     this.intensity = options.intensity;
     this.cleanup = options.cleanup;
+    this.runsPerIntensity = commandUtil.SetDefault(options.runsPerIntensity, 5);
     this.results = []
 }
 
@@ -32,7 +33,9 @@ Benchmark.prototype.flow = function(callback) {
       });
     }
 
-    funcs.push(createRunFunc(that));
+    for (i = 0; i < that.runsPerIntensity; i++) {
+        funcs.push(createRunFunc(that));
+    }
 
     if (that.cleanup !== undefined && that.cleanup !== null) {
       cleanup = that.cleanup;
@@ -44,8 +47,7 @@ Benchmark.prototype.flow = function(callback) {
     async.series(
       funcs,
       function(err) {
-        // We assume one result from one load test run for now.
-        callback(err, that.results[0]);
+        callback(err, that.results);
     });
 };
 

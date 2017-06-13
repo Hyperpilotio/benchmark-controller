@@ -9,10 +9,6 @@ const Parser = require('../extension-lib/parser.js');
 
 const MAX_STAGES = 50;
 
-const setDefault = function(value, defaultValue) {
-    return (value === undefined || value === null) ? defaultValue : value;
-}
-
 function Calibration(options) {
     if (options.loadTest === undefined || options.loadTest === null) {
         throw new Error("Load test not found in benchmark");
@@ -20,13 +16,13 @@ function Calibration(options) {
 
     this.initialize = options.initialize;
     this.loadTest = options.loadTest;
-    this.loadTest.args = setDefault(this.loadTest.args, []);
+    this.loadTest.args = commandUtil.SetDefault(this.loadTest.args, []);
     this.argValues = {};
     for (i = 0; i < this.loadTest.intensityArgs.length; i++) {
         intensityArg = this.loadTest.intensityArgs[i];
         this.argValues[intensityArg.name] = intensityArg.startingValue;
     }
-    this.runsPerIntensity = setDefault(options.runPerIntensity, 3);
+    this.runsPerIntensity = commandUtil.SetDefault(options.runsPerIntensity, 3);
     this.slo = options.slo;
     // Results stores all the past runs for all intensities
     this.results = []
@@ -143,7 +139,7 @@ function createCalibrationFunc(that, loadTest) {
                 return
             }
 
-            if (that.stageResults.length < that.runPerIntensity) {
+            if (that.stageResults.length < that.runsPerIntensity) {
                 console.log("Running #" + (that.stageResults.length + 1) + " calibration run for the same intensity");
                 createCalibrationFunc(that, loadTest)(done);
                 return

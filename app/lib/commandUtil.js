@@ -3,6 +3,10 @@ const Parser = require('../extension-lib/parser.js');
 
 var exports = module.exports = {};
 
+exports.SetDefault = function(value, defaultValue) {
+    return (value === undefined || value === null) ? defaultValue : value;
+}
+
 exports.RunCommand = function(commandObj, callback) {
     // Add the number of requests set to the arguments.
     const args = commandObj.args;

@@ -9,7 +9,7 @@ describe('lib/benchmark', function() {
            function(done) {
                const benchmark = new Benchmark(BENCHMARK_DATASET.flow[0].input.options);
                benchmark.flow(function(err, res) {
-                   assert.deepEqual(res, BENCHMARK_DATASET.flow[0].expect);
+                   assert.deepEqual(res[0], BENCHMARK_DATASET.flow[0].expect);
                    done();
                });
            });
