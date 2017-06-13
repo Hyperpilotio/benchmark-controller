@@ -1,8 +1,5 @@
 {
     "store": {
-        "type": "mongo",
-        "host": "localhost",
-        "port": "27017",
-        "dbName": "benchmarks"
+        "type": "none"
     }
 }

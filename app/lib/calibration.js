@@ -10,7 +10,7 @@ const Parser = require('../extension-lib/parser.js');
 const MAX_STAGES = 50;
 
 const setDefault = function(value, defaultValue) {
-    return (value === undefined) ? defaultValue : value;
+    return (value === undefined || value === null) ? defaultValue : value;
 }
 
 function Calibration(options) {
@@ -97,7 +97,7 @@ Calibration.prototype.computeNextThroughputArgs = function() {
             return new types.Result({error: "Cannot find configuration that meets SLO"});
         }
 
-        return new types.Result({value: {finalArgs: lastMaxSummary.intensityArgs}});
+        return new types.Result({value: {finalArgs: this.lastMaxSummary.intensityArgs}});
     }
 
     this.lastMaxRuns += 1;
