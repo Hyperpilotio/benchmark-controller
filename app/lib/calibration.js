@@ -26,18 +26,22 @@ function Calibration(options) {
     this.slo = options.slo;
     // Results stores all the past runs for all intensities
     this.results = []
-    // Stage results stores multiple run results for the current intensity args
+        // Stage results stores multiple run results for the current intensity args
     this.stageResults = []
-    // Summaries stores all the summarized results from the stage results
+        // Summaries stores all the summarized results from the stage results
     this.summaries = []
-    // Final intensity args stores the final calibrated intensity output
+        // Final intensity args stores the final calibrated intensity output
     this.finalIntensityArgs = {}
-    this.lastMaxSummary = {qos: 0.0};
+    this.lastMaxSummary = {
+        qos: 0.0
+    };
 }
 
 Calibration.prototype.computeNextLatencyArgs = function() {
     if (this.summaries.length == 0) {
-        return new types.Result({error: "No past run results found"});
+        return new types.Result({
+            error: "No past run results found"
+        });
     }
 
     lastRunResult = this.summaries[this.summaries.length - 1];
@@ -45,7 +49,9 @@ Calibration.prototype.computeNextLatencyArgs = function() {
 
     if (lastRunMetric < this.slo.value) {
         if (this.summaries.length == MAX_STAGES) {
-            return new types.Result({error: "Maximum runs reached"});
+            return new types.Result({
+                error: "Maximum runs reached"
+            });
         }
 
         newIntensityArgs = {}
@@ -54,29 +60,45 @@ Calibration.prototype.computeNextLatencyArgs = function() {
             newIntensityArgs[intensityArg.name] = lastRunResult.intensityArgs[intensityArg.name] + intensityArg.step;
         }
 
-        return new types.Result({value: {nextArgs: newIntensityArgs}});
+        return new types.Result({
+            value: {
+                nextArgs: newIntensityArgs
+            }
+        });
     } else {
         if (lastRunMetric == this.slo.value) {
             // For throughput slo, we want to find the run that just runs past the goal,
             // assuming we're increasing intesnity over time.
             // For latency slo, we also just return the last run that meets the slo goal.
             finalIntensityArgs = this.summaries[this.summaries.length - 1].intensityArgs;
-            return new types.Result({value: {finalArgs: finalIntensityArgs}});
+            return new types.Result({
+                value: {
+                    finalArgs: finalIntensityArgs
+                }
+            });
         }
 
         if (this.results.length == 1) {
-            return new types.Result({error: "No intensities can match sla goal"});
+            return new types.Result({
+                error: "No intensities can match sla goal"
+            });
         }
 
         // The last run went over the goal, so we use the previous run's intensity args
         finalIntensityArgs = this.summaries[this.summaries.length - 2].intensityArgs;
-        return new types.Result({value: {finalArgs: finalIntensityArgs}});
+        return new types.Result({
+            value: {
+                finalArgs: finalIntensityArgs
+            }
+        });
     }
 };
 
 Calibration.prototype.computeNextThroughputArgs = function() {
     if (this.summaries.length == 0) {
-        return new types.Result({error: "No past run results found"});
+        return new types.Result({
+            error: "No past run results found"
+        });
     }
 
     lastRunResult = this.summaries[this.summaries.length - 1];
@@ -90,10 +112,16 @@ Calibration.prototype.computeNextThroughputArgs = function() {
     // TODO: Make max runs configurable
     if (this.lastMaxRuns >= 5 || this.summaries.length == MAX_STAGES) {
         if (this.slo.value > this.lastMaxSummary.qos) {
-            return new types.Result({error: "Cannot find configuration that meets SLO"});
+            return new types.Result({
+                error: "Cannot find configuration that meets SLO"
+            });
         }
 
-        return new types.Result({value: {finalArgs: this.lastMaxSummary.intensityArgs}});
+        return new types.Result({
+            value: {
+                finalArgs: this.lastMaxSummary.intensityArgs
+            }
+        });
     }
 
     this.lastMaxRuns += 1;
@@ -104,7 +132,11 @@ Calibration.prototype.computeNextThroughputArgs = function() {
         newIntensityArgs[intensityArg.name] = lastRunResult.intensityArgs[intensityArg.name] + intensityArg.step;
     }
 
-    return new types.Result({value: {nextArgs: newIntensityArgs}});
+    return new types.Result({
+        value: {
+            nextArgs: newIntensityArgs
+        }
+    });
 }
 
 
@@ -130,10 +162,23 @@ function createCalibrationFunc(that, loadTest) {
             }
             args.push(that.argValues[intensityArg.name]);
         }
-        command = {path: loadTest.path, args: args}
+        command = {
+            path: loadTest.path,
+            args: args
+        }
+
+        if (that.initialize !== undefined && that.initialize !== null) {
+            console.log("Initializing calibration: " + JSON.stringify({path: that.initialize.path, args: that.initialize.args}))
+            initialize = that.initialize;
+            funcs.push(function(done) {
+                commandUtil.RunCommand(initialize, done);
+            });
+        }
         console.log("Running calibration benchmark: " + JSON.stringify(command));
 
-        commandUtil.RunBenchmark(command, that.stageResults, {intensityArgs: that.argValues}, function(error) {
+        commandUtil.RunBenchmark(command, that.stageResults, {
+            intensityArgs: that.argValues
+        }, function(error) {
             if (error !== null && error !== undefined) {
                 done(error);
                 return
@@ -155,7 +200,8 @@ function createCalibrationFunc(that, loadTest) {
 
             that.summaries.push({
                 qos: lastRunMetrics / (that.stageResults.length * 1.0),
-                intensityArgs: that.argValues})
+                intensityArgs: that.argValues
+            })
 
             that.stageResults = [];
 
@@ -181,20 +227,17 @@ function createCalibrationFunc(that, loadTest) {
 Calibration.prototype.flow = function(callback) {
     var that = this;
     var funcs = []
-    if (that.initialize !== undefined && that.initialize !== null) {
-        initialize = that.initialize;
-        funcs.push(function(done) {
-            commandUtil.RunCommand(initialize, done);
-        });
-    }
 
     funcs.push(createCalibrationFunc(that, that.loadTest));
 
     async.series(
-      funcs,
-      function(err) {
-        callback(err, {runResults: that.results, finalIntensityArgs: that.finalIntensityArgs});
-    });
+        funcs,
+        function(err) {
+            callback(err, {
+                runResults: that.results,
+                finalIntensityArgs: that.finalIntensityArgs
+            });
+        });
 };
 
 module.exports = Calibration;

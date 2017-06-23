@@ -7,7 +7,7 @@ const commandUtil = require('./commandUtil.js');
 
 function Benchmark(options) {
     if (options.loadTest === undefined || options.loadTest === null) {
-      throw new Error("Load test not found in benchmark");
+        throw new Error("Load test not found in benchmark");
     }
     this.initialize = options.initialize;
     this.loadTest = options.loadTest;
@@ -18,37 +18,41 @@ function Benchmark(options) {
 }
 
 function createRunFunc(that) {
-  return function(done) {
-    commandUtil.RunBenchmark(that.loadTest, that.results, {intensity: that.intensity}, done);
-  };
+    return function(done) {
+        commandUtil.RunBenchmark(that.loadTest, that.results, {
+            intensity: that.intensity
+        }, done);
+    };
 }
 
 Benchmark.prototype.flow = function(callback) {
     var that = this;
     var funcs = []
-    if (that.initialize !== undefined && that.initialize !== null) {
-      initialize = that.initialize;
-      funcs.push(function(done) {
-        commandUtil.RunCommand(initialize, done);
-      });
-    }
+
 
     for (i = 0; i < that.runsPerIntensity; i++) {
+        if (that.initialize !== undefined && that.initialize !== null) {
+            console.log("Initializing benchmark")
+            initialize = that.initialize;
+            funcs.push(function(done) {
+                commandUtil.RunCommand(initialize, done);
+            });
+        }
         funcs.push(createRunFunc(that));
-    }
-
-    if (that.cleanup !== undefined && that.cleanup !== null) {
-      cleanup = that.cleanup;
-      funcs.push(function(done) {
-        commandUtil.RunCommand(cleanup, done);
-      });
+        if (that.cleanup !== undefined && that.cleanup !== null) {
+            console.log("Cleaning up benchmark")
+            cleanup = that.cleanup;
+            funcs.push(function(done) {
+                commandUtil.RunCommand(cleanup, done);
+            });
+        }
     }
 
     async.series(
-      funcs,
-      function(err) {
-        callback(err, that.results);
-    });
+        funcs,
+        function(err) {
+            callback(err, that.results);
+        });
 };
 
 module.exports = Benchmark;
