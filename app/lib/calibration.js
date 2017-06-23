@@ -152,28 +152,21 @@ Calibration.prototype.computeNextIntensityArgs = function() {
     }
 }
 
-function createCalibrationFunc(that, loadTest) {
+function createCalibrationFunc(that) {
     return function(done) {
-        args = loadTest.args.slice();
-        for (i = 0; i < loadTest.intensityArgs.length; i++) {
-            intensityArg = loadTest.intensityArgs[i]
+        args = that.loadTest.args.slice();
+        for (i = 0; i < that.loadTest.intensityArgs.length; i++) {
+            intensityArg = that.loadTest.intensityArgs[i]
             if (intensityArg.arg !== undefined) {
                 args.push(intensityArg.arg);
             }
             args.push(that.argValues[intensityArg.name]);
         }
         command = {
-            path: loadTest.path,
+            path: that.loadTest.path,
             args: args
         }
 
-        if (that.initialize !== undefined && that.initialize !== null) {
-            console.log("Initializing calibration: " + JSON.stringify({path: that.initialize.path, args: that.initialize.args}))
-            initialize = that.initialize;
-            funcs.push(function(done) {
-                commandUtil.RunCommand(initialize, done);
-            });
-        }
         console.log("Running calibration benchmark: " + JSON.stringify(command));
 
         commandUtil.RunBenchmark(command, that.stageResults, {
@@ -186,7 +179,7 @@ function createCalibrationFunc(that, loadTest) {
 
             if (that.stageResults.length < that.runsPerIntensity) {
                 console.log("Running #" + (that.stageResults.length + 1) + " calibration run for the same intensity");
-                createCalibrationFunc(that, loadTest)(done);
+                createCalibrationFunc(that, that.loadTest)(done);
                 return
             }
 
@@ -219,19 +212,32 @@ function createCalibrationFunc(that, loadTest) {
 
             console.log("Setting next run's intensity args to " + JSON.stringify(result.value.nextArgs));
             that.argValues = result.value.nextArgs;
-            createCalibrationFunc(that, loadTest)(done);
+            createCalibrationFlowFunc(that)(done);
         });
+    }
+}
+
+function createCalibrationFlowFunc(that) {
+    return function(done) {
+        if (that.initialize !== undefined && that.initialize !== null) {
+            console.log("Initializing calibration: " + JSON.stringify({path: that.initialize.path, args: that.initialize.args}))
+            commandUtil.RunCommand(that.initialize, function(error, output) {
+                if (error !== null) {
+                    done(error);
+                    return
+                }
+
+                createCalibrationFunc(that)(done)
+            })
+        }
     }
 }
 
 Calibration.prototype.flow = function(callback) {
     var that = this;
-    var funcs = []
-
-    funcs.push(createCalibrationFunc(that, that.loadTest));
 
     async.series(
-        funcs,
+        [createCalibrationFlowFunc(that)],
         function(err) {
             callback(err, {
                 runResults: that.results,
