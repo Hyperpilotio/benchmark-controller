@@ -78,7 +78,7 @@ Calibration.prototype.computeNextLatencyArgs = function() {
             });
         }
 
-        if (this.results.length == 1) {
+        if (this.summaries.length == 1) {
             return new types.Result({
                 error: "No intensities can match sla goal"
             });
