@@ -229,6 +229,8 @@ function createCalibrationFlowFunc(that) {
 
                 createCalibrationFunc(that)(done)
             })
+        } else {
+                createCalibrationFunc(that)(done)
         }
     }
 }
