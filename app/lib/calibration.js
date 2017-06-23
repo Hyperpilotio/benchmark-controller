@@ -179,7 +179,7 @@ function createCalibrationFunc(that) {
 
             if (that.stageResults.length < that.runsPerIntensity) {
                 console.log("Running #" + (that.stageResults.length + 1) + " calibration run for the same intensity");
-                createCalibrationFunc(that, that.loadTest)(done);
+                createCalibrationFlowFunc(that)(done);
                 return
             }
 
