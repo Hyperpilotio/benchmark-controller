@@ -12,6 +12,7 @@ var bodyParser = require('body-parser');
 var os = require('os');
 var querystring = require("querystring");
 
+const logger = require('../config/logger');
 const config = require('../config/config.js');
 const metricModel = function() {
     switch (config.store.type) {
@@ -99,7 +100,7 @@ app.get('/', function(req, res) {
 });
 
 app.post('/', function(req, res) {
-    console.log(req.body);
+    logger.log('verbose', req.body);
     /*
      * POST route for form submit runs benchmark and displays results.
      */
@@ -175,13 +176,12 @@ app.post('/api/calibrate', function(req, res) {
 
     runCalibration(request, function(err, results) {
         if (err !== null) {
-            console.log("Error running calibration:");
-            console.log(err);
+            logger.log('error', `Error running calibration: ${err}`);
             calibration = calibrations[request.stageId]
             calibration.status = "failed";
             calibration.error = err.message
         } else {
-            console.log("Calibration finished for stage "  + request.stageId);
+            logger.log('info', `Calibration finished for stage ${request.stageId}`);
             for (let result in results.runResults) {
               metricModel.SaveMetric(result);
             }
@@ -216,14 +216,13 @@ app.post('/api/benchmarks', function(req, res) {
 
     runBenchmark(benchmarkOpts, function(err, results) {
         if (err !== null) {
-            console.log("Error found with benchmark:");
-            console.log(err);
+            logger.log('error', `Error found with benchmark: ${err}`);
             benchmark = benchmarks[benchmarkOpts.stageId]
             benchmark.status = "failed";
             benchmark.error = err.message
 
         } else {
-            console.log("Benchmark finished for stage " + benchmarkOpts.stageId);
+            logger.log('info', `Benchmark finished for stage ${benchmarkOpts.stageId}`);
             for (let result in results) {
               metricModel.SaveMetric(result);
             }
@@ -244,7 +243,7 @@ var runBenchmark = function(options, callback) {
     // Assume the options sent are options appropriate for Benchmark
     try {
       const benchmark = new Benchmark(options);
-      console.log("Running benchmark id [%s]", options.stageId);
+      logger.log('info', `Running benchmark id [options.stageId]`);
 
       // Run the benchmark and pass the output to the calling function.
       benchmark.flow(function(err, output) {
@@ -262,7 +261,7 @@ var runCalibration = function(options, callback) {
 
     try {
       const calibration = new Calibration(options);
-      console.log("Running calibration id [%s]", options.stageId);
+      logger.log('info', `Running calibration id [${options.stageId}]`);
 
       // Run the benchmark and pass the output to the calling function.
       calibration.flow(function(err, output) {
@@ -278,7 +277,7 @@ exports.app = function() {
     let server = app.listen(config.port, config.host, function () {
         var host = server.address().address;
         var port = server.address().port;
-        console.log('benchmarks-ui running on %s:%d', host, port);
+        logger.log('info', `benchmarks-ui running on ${host}: ${port}`);
     });
     return server;
 }

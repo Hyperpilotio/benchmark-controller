@@ -1,11 +1,12 @@
 const spawn = require('child_process').spawn;
 const Parser = require('../extension-lib/parser.js');
+const logger = require('../config/logger');
 
 var exports = module.exports = {};
 
 exports.SetDefault = function(value, defaultValue) {
     return (value === undefined || value === null) ? defaultValue : value;
-}
+};
 
 exports.RunCommand = function(commandObj, callback) {
     // Add the number of requests set to the arguments.
@@ -20,29 +21,29 @@ exports.RunCommand = function(commandObj, callback) {
     let error_output = "";
     child.stdout.on('data', function(data) {
         output += data;
-        console.log("child_process [%s] [STDOUT]:%s", commandObj.path, data);
+        logger.log('verbose', `child_process [${commandObj.path}] [STDOUT]:${data}`);
     });
 
     child.stderr.on('data', function(data) {
         // Log errors
         error_output += data;
-        console.log("child_process [%s] [STDERR]: %s", commandObj.path, data);
+        logger.log('verbose', `child_process [${commandObj.path}] [STDERR]: ${data}`);
     });
 
     child.on('error', function(error) {
-        console.log("Error running child process [%s]: %s", commandObj.path, error);
+        logger.log('error', `Error running child process [${commandObj.path}]: ${error}`);
         callback(new Error(error), null);
     });
 
     child.on('exit', function(exitCode) {
-        console.log("Child process exited with code: " + exitCode);
+        logger.log('info', `Child process exited with code: ${exitCode}`);
         if (exitCode !== 0) {
             callback(new Error(error_output), null);
         } else {
             callback(null, output);
         }
     });
-}
+};
 
 exports.RunBenchmark = function(commandObj, results, tags, callback) {
     exports.RunCommand(commandObj, function(error, output) {

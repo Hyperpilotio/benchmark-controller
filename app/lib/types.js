@@ -10,4 +10,4 @@ class Result {
   }
 }
 
-exports.Result = Result
+exports.Result = Result;

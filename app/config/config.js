@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const logger = require('../config/logger');
 
 // Load the configuration from the config file.
 const configFile = path.join(__dirname, "config.json");
@@ -18,12 +19,12 @@ try {
     config = Object.assign(config, JSON.parse(fs.readFileSync(configFile)));
 } catch (e) {
     // Quit if the config file can't be read
-    console.log("Error parsing %s - %s", configFile, e);
+    logger.log('error', `Error parsing ${configFile} -  ${e}`);
     process.exit(1);
 }
 
 if (config.store === undefined) {
-    console.log(new Error("Required field is missing."));
+    logger.log('error', new Error("Required field is missing."));
     process.exit(1);
 }
 
