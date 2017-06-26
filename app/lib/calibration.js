@@ -6,6 +6,7 @@ const async = require('async');
 const commandUtil = require('./commandUtil.js');
 const types = require('./types.js');
 const Parser = require('../extension-lib/parser.js');
+const logger = require('../config/logger');
 
 const MAX_STAGES = 50;
 
@@ -162,12 +163,12 @@ function createCalibrationFunc(that) {
             }
             args.push(that.argValues[intensityArg.name]);
         }
+
         command = {
             path: that.loadTest.path,
             args: args
         }
-
-        console.log("Running calibration benchmark: " + JSON.stringify(command));
+        logger.log('info',`Running calibration benchmark: ${JSON.stringify(command)}` );
 
         commandUtil.RunBenchmark(command, that.stageResults, {
             intensityArgs: that.argValues
@@ -178,7 +179,7 @@ function createCalibrationFunc(that) {
             }
 
             if (that.stageResults.length < that.runsPerIntensity) {
-                console.log("Running #" + (that.stageResults.length + 1) + " calibration run for the same intensity");
+                logger.log('info', `Running # ${that.stageResults.length + 1} calibration run for the same intensity`);
                 createCalibrationFlowFunc(that)(done);
                 return
             }
@@ -200,17 +201,17 @@ function createCalibrationFunc(that) {
 
             result = that.computeNextIntensityArgs();
             if (result.error !== null) {
-                console.log("Unexpected error when finding next intensity arg: " + result.error);
+                logger.log('error',`Unexpected error when finding next intensity arg: ${result.error}` );
                 done(result.error);
                 return
             } else if (result.value.finalArgs !== undefined) {
-                console.log("Final intensity args found: " + JSON.stringify(result.value.finalArgs));
+                logger.log('info', `Final intensity args found:  ${JSON.stringify(result.value.finalArgs)}`);
                 that.finalIntensityArgs = result.value.finalArgs;
                 done();
                 return
             }
 
-            console.log("Setting next run's intensity args to " + JSON.stringify(result.value.nextArgs));
+            logger.log('info', `Setting next run's intensity args to ${JSON.stringify(result.value.nextArgs)}`);
             that.argValues = result.value.nextArgs;
             createCalibrationFlowFunc(that)(done);
         });

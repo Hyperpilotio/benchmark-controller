@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const config = require('../config/config.js');
+const logger = require('../config/logger');
 const os = require('os');
 // A set of models
 const db = {};
@@ -22,11 +23,11 @@ mongoose.Promise = global.Promise;
 mongoose.connect(`mongodb://${host}:${port}/${dbName}`);
 
 connection.on('error', function(err){
-    console.log(`connection error: ${err}.\nHost ${host} Port ${port}`);
+    logger.log('error', `connection error: ${err}.\nHost ${host} Port ${port}`);
     process.exit(1);
 });
 connection.once('open', function() {
-    console.log(`Successfully connect to mongo!\nmongodb://${host}:${port}/${dbName}`);
+    logger.log('info', `Successfully connect to mongo!\nmongodb://${host}:${port}/${dbName}`);
 });
 
 const MetricSchema = new Schema({
@@ -55,7 +56,7 @@ MetricSchema.methods = {
         this.stat = fieldObj;
         return this.save(function(err){
             if(err){
-                console.log(`Unable to save metric: ${err}`);
+                logger.log('error', `Unable to save metric: ${err}`);
             }
         });
     }
