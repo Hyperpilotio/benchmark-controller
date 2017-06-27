@@ -16,16 +16,17 @@ exports.RunCommand = function(commandObj, callback) {
     const child = spawn(path, args);
 
     // Collect stdout into a CSV string.
-    let output = "";
-    let error_output = "";
+    let output = {};
+    output['stdout'] = "";
+    output['stderr'] = "";
     child.stdout.on('data', function(data) {
-        output += data;
+        output['stdout'] += data;
         console.log("child_process [%s] [STDOUT]:%s", commandObj.path, data);
     });
 
     child.stderr.on('data', function(data) {
         // Log errors
-        error_output += data;
+        output['stderr'] += data;
         console.log("child_process [%s] [STDERR]: %s", commandObj.path, data);
     });
 
@@ -53,14 +54,31 @@ exports.RunBenchmark = function(commandObj, results, tags, callback) {
 
         // Parse the output of benchmark to an object.
         const parser = new Parser(commandObj);
-        const lines = output.split("\n");
-        const benchmarkObj = parser.processLines(lines);
+        const stdout = output['stdout'].split("\n");
+        const stderr = output['stderr'].split("\n");
+        console.log(stderr);
+        var benchmarkObj, stderrObj;
+
+        // Compatible to old parser...
+        if (typeof parser.processStdout === "function") {
+            benchmarkObj = parser.processStdout(stdout);
+            stderrObj = parser.processStderr(stderr);
+            console.log(stderr);
+        } else {
+            // old method
+            benchmarkObj = parser.processLines(stdout);
+            console.log("In order support new calibration feeature, please implement processStdout and processStderr in your parser.");
+        }
+        
         // Return the resulting benchmarks data object.
         var result = {};
         for (var i in tags) {
             result[i] = tags[i];
         }
+        
         result["results"] = benchmarkObj;
+        result["stderrs"] = stderrObj ? stderrObj : {};
+
         results.push(result);
         callback();
     });
