@@ -63,7 +63,8 @@ const BENCHMARK_DATASET = {
           'intensity': 1,
           'results': {
               '0': 'Hyperpilot is wonderful!'
-            }
+            },
+          'stderrs':{} // TODO: add stderr testcase.
         }
     }],
     'run': [{
@@ -79,9 +80,10 @@ const BENCHMARK_DATASET = {
           },
         'expect': {
             'intensity': 1,
-            results: {
+            'results': {
                 '0': 'Hyperpilot is awesome'
-              }
+              },
+            'stderrs':{}
           }
       }]
   };
