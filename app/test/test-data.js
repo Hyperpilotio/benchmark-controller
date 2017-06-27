@@ -53,9 +53,11 @@ const BENCHMARK_DATASET = {
           'options': {
               'loadTest':
                   {
+                      'image': 'alpine:3.4',
                       'path': 'echo',
                       'args': ['Hyperpilot is wonderful!']
                   },
+              'runsPerIntensity': 2,
               'intensity': 1
             },
         },
@@ -72,6 +74,7 @@ const BENCHMARK_DATASET = {
                 'loadTest': {}
               },
             'commandObj': {
+                'image': 'alpine:3.4',
                 'path': 'echo',
                 'args': ['Hyperpilot is awesome']
               },

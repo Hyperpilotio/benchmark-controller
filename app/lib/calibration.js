@@ -5,7 +5,6 @@ const util = require('util');
 const async = require('async');
 const commandUtil = require('./commandUtil.js');
 const types = require('./types.js');
-const Parser = require('../extension-lib/parser.js');
 const logger = require('../config/logger');
 
 const MAX_STAGES = 50;
@@ -58,10 +57,13 @@ Calibration.prototype.computeNextLatencyArgs = function() {
             });
         }
 
-        newIntensityArgs = {}
+        newIntensityArgs = {};
         for (i = 0; i < this.loadTest.intensityArgs.length; i++) {
             intensityArg = this.loadTest.intensityArgs[i];
-            newIntensityArgs[intensityArg.name] = lastRunResult.intensityArgs[intensityArg.name] + intensityArg.step;
+            // NOTE There is a chance that variable intesnityArgs is string and
+            // intensityArg.step is string too. We want the sum of two number instead of
+            // two strings. As a result, we use `Number` to ensure the arguments are numbers.
+            newIntensityArgs[intensityArg.name] = Number(lastRunResult.intensityArgs[intensityArg.name]) + Number(intensityArg.step);
         }
 
         this.lastMaxSummary = lastRunResult
@@ -143,7 +145,10 @@ Calibration.prototype.computeNextThroughputArgs = function() {
     newIntensityArgs = {}
     for (i = 0; i < this.loadTest.intensityArgs.length; i++) {
         intensityArg = this.loadTest.intensityArgs[i];
-        newIntensityArgs[intensityArg.name] = lastRunResult.intensityArgs[intensityArg.name] + intensityArg.step;
+        // NOTE There is a chance that variable intesnityArgs is string and
+        // intensityArg.step is string too. We want the sum of two number instead of
+        // two strings. As a result, we use `Number` to ensure the arguments are numbers.
+        newIntensityArgs[intensityArg.name] = Number(lastRunResult.intensityArgs[intensityArg.name]) + Number(intensityArg.step);
     }
 
     return new types.Result({
@@ -175,10 +180,18 @@ Calibration.prototype.createCalibrationFunc = function() {
             if (intensityArg.arg !== undefined) {
                 args.push(intensityArg.arg);
             }
+
+            // FIXME if When the test reaches its maximum rounds, the that.argValues is undefined,
+            // which means the following command will fail because nodejs could not read the property 
+            // `intensityArg.name` of undefined
+            // if (that.argValues) {
+            //  args.push(that.argValues[intensityArg.name]);
+            // }
             args.push(that.argValues[intensityArg.name]);
         }
 
         command = {
+            image: that.loadTest.image,
             path: that.loadTest.path,
             args: args
         }
@@ -243,9 +256,12 @@ Calibration.prototype.createCalibrationFunc = function() {
 
 function createCalibrationFlowFunc(that) {
     return function(done) {
-        if (that.initializeType == "run" && that.initialize !== undefined && that.initialize !== null) {
-            console.log("Initializing calibration: " + JSON.stringify({path: that.initialize.path, args: that.initialize.args}))
-            commandUtil.RunCommand(that.initialize, false, function(error, output) {
+        if (that.initialize !== undefined && that.initialize !== null) {
+            logger.log('info', `Initializing calibration: ${JSON.stringify({
+                image: that.initialize.image,
+                path: that.initialize.path,
+                args: that.initialize.args})}`);
+            commandUtil.RunCommand(that.initialize, function(error, output) {
                 if (error !== null) {
                     done(error);
                     return;

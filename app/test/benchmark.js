@@ -7,6 +7,7 @@ describe('lib/benchmark', function() {
     describe('#flow()', function() {
         it('should successfully return data when a set of command is given',
            function(done) {
+               this.timeout(6000);
                const benchmark = new Benchmark(BENCHMARK_DATASET.flow[0].input.options);
                benchmark.flow(function(err, res) {
                    assert.deepEqual(res[0], BENCHMARK_DATASET.flow[0].expect);
@@ -18,6 +19,7 @@ describe('lib/benchmark', function() {
         results = []
         it('should successfully return data when a command is given',
            function(done) {
+               this.timeout(3000);
                commandUtil.RunBenchmark(BENCHMARK_DATASET.run[0].input.commandObj,
                              results,
                              {intensity: BENCHMARK_DATASET.run[0].input.intensity},

@@ -2,23 +2,32 @@ const spawn = require('child_process').spawn;
 const Parser = require('../extension-lib/parser.js');
 const logger = require('../config/logger');
 
+const dockerPath = 'docker';
+const  dockerArgs = ['run'];
+
 var exports = module.exports = {};
 
 exports.SetDefault = function(value, defaultValue) {
     return (value === undefined || value === null) ? defaultValue : value;
 };
 
-exports.RunCommand = function(commandObj, collectOutput, callback) {
+
+/**
+ * RunCommand
+ * function to execute the given command.
+ * @param {object} commandObj
+ * @param {function} callback
+ */
+exports.RunCommand = function(commandObj, callback) {
     // Add the number of requests set to the arguments.
-    const args = commandObj.args;
-    const path = commandObj.path;
+    const args = dockerArgs.concat([commandObj.image, commandObj.path]).concat(commandObj.args);
 
     // Spawn the child process to run the benchmark.
-    const child = spawn(path, args);
+    const child = spawn(dockerPath, args);
 
     // Collect stdout into a CSV string.
-    let output = "";
-    let error_output = "";
+    let output = '';
+    let error_output = '';
     child.stdout.on('data', function(data) {
         if (collectOutput) {
             output += data;
