@@ -9,6 +9,9 @@ const dockerArgs = ['run', '--rm'];
 const dockerPath = 'docker';
 const  dockerArgs = ['run'];
 
+const dockerPath = 'docker';
+const  dockerArgs = ['run'];
+
 var exports = module.exports = {};
 
 exports.SetDefault = function(value, defaultValue) {

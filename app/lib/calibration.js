@@ -250,12 +250,20 @@ Calibration.prototype.createCalibrationFunc = function() {
 
 function createCalibrationFlowFunc(that) {
     return function(done) {
+<<<<<<< HEAD
         if (that.initializeType == "run" && that.initialize !== undefined && that.initialize !== null) {
+=======
+        if (that.initialize !== undefined && that.initialize !== null) {
+>>>>>>> Use docker to start load testing instead of child spawn
             logger.log('info', `Initializing calibration: ${JSON.stringify({
                 image: that.initialize.image,
                 path: that.initialize.path,
                 args: that.initialize.args})}`);
+<<<<<<< HEAD
             commandUtil.RunCommand(that.initialize, false, function(error, output) {
+=======
+            commandUtil.RunCommand(that.initialize, function(error, output) {
+>>>>>>> Use docker to start load testing instead of child spawn
                 if (error !== null) {
                     done(error);
                     return;
