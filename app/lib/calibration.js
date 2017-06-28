@@ -32,7 +32,7 @@ function Calibration(options) {
         // Summaries stores all the summarized results from the stage results
     this.summaries = []
         // Final intensity args stores the final calibrated intensity output
-    this.finalIntensityArgs = {}
+    this.finalResults = {}
     this.lastMaxSummary = {
         qos: 0.0
     };
@@ -71,10 +71,14 @@ Calibration.prototype.computeNextLatencyArgs = function() {
             // For throughput slo, we want to find the run that just runs past the goal,
             // assuming we're increasing intesnity over time.
             // For latency slo, we also just return the last run that meets the slo goal.
-            finalIntensityArgs = this.summaries[this.summaries.length - 1].intensityArgs;
+            finalResults = {
+                intensityArgs: this.summaries[this.summaries.length - 1].intensityArgs,
+                qos: lastRunMetric
+            }
+
             return new types.Result({
                 value: {
-                    finalArgs: finalIntensityArgs
+                    finalResults: finalResults
                 }
             });
         }
@@ -85,11 +89,17 @@ Calibration.prototype.computeNextLatencyArgs = function() {
             });
         }
 
+        finalSummary = this.summaries[this.summaries.length - 2]
+
         // The last run went over the goal, so we use the previous run's intensity args
-        finalIntensityArgs = this.summaries[this.summaries.length - 2].intensityArgs;
+        finalResults = {
+            intensityArgs: finalSummary.intensityArgs,
+            qos: finalSummary.qos
+        }
+
         return new types.Result({
             value: {
-                finalArgs: finalIntensityArgs
+                finalResults: finalResults
             }
         });
     }
@@ -120,7 +130,10 @@ Calibration.prototype.computeNextThroughputArgs = function() {
 
         return new types.Result({
             value: {
-                finalArgs: this.lastMaxSummary.intensityArgs
+                finalResults: {
+                    intensityArgs: this.lastMaxSummary.intensityArgs,
+                    qos: this.lastMaxSummary.qos
+                }
             }
         });
     }
@@ -204,14 +217,14 @@ function createCalibrationFunc(that) {
                 logger.log('error',`Unexpected error when finding next intensity arg: ${result.error}` );
                 done(result.error);
                 return
-            } else if (result.value.finalArgs !== undefined) {
-                logger.log('info', `Final intensity args found:  ${JSON.stringify(result.value.finalArgs)}`);
-                that.finalIntensityArgs = result.value.finalArgs;
+            } else if (result.value.finalResults !== undefined) {
+                logger.log('info', `Final results found:  ${JSON.stringify(result.value.finalResults)}`);
+                that.finalResults = result.value.finalResults;
                 done();
                 return
             }
 
-            logger.log('info', `Setting next run's intensity args to ${JSON.stringify(result.value.nextArgs)}`);
+            logger.log('info', `Setting next intensity args to ${JSON.stringify(result.value.nextArgs)}`);
             that.argValues = result.value.nextArgs;
             createCalibrationFlowFunc(that)(done);
         });
