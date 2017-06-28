@@ -1,9 +1,10 @@
 const spawn = require('child_process').spawn;
 const Parser = require('../extension-lib/parser.js');
 const logger = require('../config/logger');
-
 const dockerPath = 'docker';
-const  dockerArgs = ['run'];
+// --rm: we don't end up a lot of containers on the host not cleaned up
+// --privileged be able to access the host. Permission is required by dind (docker in docker)
+const  dockerArgs = ['run', '--rm', '--privileged'];
 
 var exports = module.exports = {};
 
