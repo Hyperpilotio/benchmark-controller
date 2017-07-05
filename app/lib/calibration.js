@@ -257,7 +257,7 @@ Calibration.prototype.flow = function(callback) {
         function(err) {
             callback(err, {
                 runResults: that.results,
-                finalIntensityArgs: that.finalIntensityArgs
+                finalResults: that.finalResults
             });
         });
 };

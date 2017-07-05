@@ -185,10 +185,10 @@ app.post('/api/calibrate', function(req, res) {
             for (let result in results.runResults) {
               metricModel.SaveMetric(result);
             }
-            metricModel.SaveMetric({stageId: request.stageId, finalIntensityArgs: results.finalIntensityArgs});
+            metricModel.SaveMetric({stageId: request.stageId, finalResults: results.finalResults});
             calibration = calibrations[request.stageId]
             calibration.status = "success";
-            calibration.results = {finalIntensityArgs: results.finalIntensityArgs, runResults: results.runResults}
+            calibration.results = {finalResults: results.finalResults, runResults: results.runResults}
         }
     });
 
