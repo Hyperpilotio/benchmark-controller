@@ -8,7 +8,7 @@ exports.SetDefault = function(value, defaultValue) {
     return (value === undefined || value === null) ? defaultValue : value;
 };
 
-exports.RunCommand = function(commandObj, callback) {
+exports.RunCommand = function(commandObj, collectOutput, callback) {
     // Add the number of requests set to the arguments.
     const args = commandObj.args;
     const path = commandObj.path;
@@ -20,7 +20,9 @@ exports.RunCommand = function(commandObj, callback) {
     let output = "";
     let error_output = "";
     child.stdout.on('data', function(data) {
-        output += data;
+        if (collectOutput) {
+            output += data;
+        }
         logger.log('verbose', `child_process [${commandObj.path}] [STDOUT]:${data}`);
     });
 
@@ -46,7 +48,7 @@ exports.RunCommand = function(commandObj, callback) {
 };
 
 exports.RunBenchmark = function(commandObj, results, tags, callback) {
-    exports.RunCommand(commandObj, function(error, output) {
+    exports.RunCommand(commandObj, true, function(error, output) {
         if (error !== null) {
             callback(error);
             return;

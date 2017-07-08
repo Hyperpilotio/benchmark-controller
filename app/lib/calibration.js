@@ -235,7 +235,7 @@ function createCalibrationFlowFunc(that) {
     return function(done) {
         if (that.initialize !== undefined && that.initialize !== null) {
             console.log("Initializing calibration: " + JSON.stringify({path: that.initialize.path, args: that.initialize.args}))
-            commandUtil.RunCommand(that.initialize, function(error, output) {
+            commandUtil.RunCommand(that.initialize, false, function(error, output) {
                 if (error !== null) {
                     done(error);
                     return

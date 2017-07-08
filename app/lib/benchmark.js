@@ -35,7 +35,7 @@ Benchmark.prototype.flow = function(callback) {
             console.log("Initializing benchmark")
             initialize = that.initialize;
             funcs.push(function(done) {
-                commandUtil.RunCommand(initialize, done);
+                commandUtil.RunCommand(initialize, false, done);
             });
         }
         funcs.push(createRunFunc(that));
@@ -43,7 +43,7 @@ Benchmark.prototype.flow = function(callback) {
             console.log("Cleaning up benchmark")
             cleanup = that.cleanup;
             funcs.push(function(done) {
-                commandUtil.RunCommand(cleanup, done);
+                commandUtil.RunCommand(cleanup, false, done);
             });
         }
     }
