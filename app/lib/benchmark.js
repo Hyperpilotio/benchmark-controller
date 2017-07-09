@@ -10,10 +10,11 @@ function Benchmark(options) {
         throw new Error("Load test not found in benchmark");
     }
     this.initialize = options.initialize;
+    this.initializeType = commandUtil.SetDefault(options.initializeType, "run");
     this.loadTest = options.loadTest;
     this.intensity = options.intensity;
     this.cleanup = options.cleanup;
-    this.runsPerIntensity = commandUtil.SetDefault(options.runsPerIntensity, 5);
+    this.runsPerIntensity = commandUtil.SetDefault(options.runsPerIntensity, 3);
     this.results = []
 }
 
@@ -29,10 +30,17 @@ Benchmark.prototype.flow = function(callback) {
     var that = this;
     var funcs = []
 
+    if (that.initializeType == "stage" && that.initialize !== undefined && that.initialize !== null) {
+        console.log("Initializing benchmark on each stage");
+        initialize = that.initialize;
+        funcs.push(function(done) {
+            commandUtil.RunCommand(initialize, false, done);
+        });
+    }
 
     for (i = 0; i < that.runsPerIntensity; i++) {
-        if (that.initialize !== undefined && that.initialize !== null) {
-            console.log("Initializing benchmark")
+        if (that.initializeType == "run" && that.initialize !== undefined && that.initialize !== null) {
+            console.log("Initializing benchmark on each run");
             initialize = that.initialize;
             funcs.push(function(done) {
                 commandUtil.RunCommand(initialize, false, done);

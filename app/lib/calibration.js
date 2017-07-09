@@ -16,6 +16,7 @@ function Calibration(options) {
     }
 
     this.initialize = options.initialize;
+    this.initializeType = commandUtil.SetDefault(options.initializeType, "run");
     this.loadTest = options.loadTest;
     this.loadTest.args = commandUtil.SetDefault(this.loadTest.args, []);
     this.argValues = {};
@@ -233,7 +234,7 @@ function createCalibrationFunc(that) {
 
 function createCalibrationFlowFunc(that) {
     return function(done) {
-        if (that.initialize !== undefined && that.initialize !== null) {
+        if (that.initializeType == "run" && that.initialize !== undefined && that.initialize !== null) {
             console.log("Initializing calibration: " + JSON.stringify({path: that.initialize.path, args: that.initialize.args}))
             commandUtil.RunCommand(that.initialize, false, function(error, output) {
                 if (error !== null) {
@@ -252,8 +253,18 @@ function createCalibrationFlowFunc(that) {
 Calibration.prototype.flow = function(callback) {
     var that = this;
 
+    let commands = [];
+    if (that.initializeType == "stage" && that.initialize !== undefined && that.initialize !== null) {
+        commands.push(function(done) {
+            console.log("Initializing calibration at beginning of stage");
+            commandUtil.RunCommand(that.initialize, false, done);
+        });
+    }
+
+    commands.push(createCalibrationFlowFunc(that));
+
     async.series(
-        [createCalibrationFlowFunc(that)],
+        commands,
         function(err) {
             callback(err, {
                 runResults: that.results,

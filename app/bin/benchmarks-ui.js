@@ -50,6 +50,7 @@ const generateBenchmarkOpts = function(requestBody) {
     return [
         {
             initialize: requestBody.initialize,
+            initializeType: requestBody.initializeType,
             loadTest: requestBody.loadTest,
             intensity: requestBody.intensity,
             cleanup: requestBody.cleanup,
@@ -68,6 +69,7 @@ const generateCalibrationOpts = function(requestBody) {
     return [
         {
             initialize: requestBody.initialize,
+            initializeType: requestBody.initializeType,
             loadTest: requestBody.loadTest,
             slo: requestBody.slo,
             stageId: requestBody.stageId
