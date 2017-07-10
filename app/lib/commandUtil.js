@@ -15,18 +15,17 @@ exports.SetDefault = function(value, defaultValue) {
 /**
  * CheckCommandObject
  * function that checks whether or not the input is a valid command object.
- * @param object
  * @return boolean
  */
 var IsCommandObjectValid = function(commandObj) {
     res = true;
     if(!commandObj) {
         res = false;
-    } else if (! commandObj.image) {
+    } else if (!commandObj.image) {
         res = false;
-    } else if (! commandObj.args) {
+    } else if (!commandObj.args) {
         res = false;
-    } else if (! commandObj.path) {
+    } else if (!commandObj.path) {
         res = false;
     }
     return res;
@@ -42,7 +41,7 @@ var IsCommandObjectValid = function(commandObj) {
 exports.RunCommand = function(commandObj, collectOutput, callback) {
     if (!IsCommandObjectValid(commandObj)) {
         logger.log('error', `Error running command: ${JSON.stringify(commandObj)}`);
-        callback(new Error(`Varible commandObj is not valid, ${stringify(commandObj)}`), null);
+        callback(new Error(`Variable commandObj is not valid, ${stringify(commandObj)}`), null);
         return;
     }
 

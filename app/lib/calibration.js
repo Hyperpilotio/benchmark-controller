@@ -181,12 +181,6 @@ Calibration.prototype.createCalibrationFunc = function() {
                 args.push(intensityArg.arg);
             }
 
-            // FIXME if When the test reaches its maximum rounds, the that.argValues is undefined,
-            // which means the following command will fail because nodejs could not read the property 
-            // `intensityArg.name` of undefined
-            // if (that.argValues) {
-            //  args.push(that.argValues[intensityArg.name]);
-            // }
             args.push(that.argValues[intensityArg.name]);
         }
 
@@ -256,12 +250,12 @@ Calibration.prototype.createCalibrationFunc = function() {
 
 function createCalibrationFlowFunc(that) {
     return function(done) {
-        if (that.initialize !== undefined && that.initialize !== null) {
+        if (that.initializeType == "run" && that.initialize !== undefined && that.initialize !== null) {
             logger.log('info', `Initializing calibration: ${JSON.stringify({
                 image: that.initialize.image,
                 path: that.initialize.path,
                 args: that.initialize.args})}`);
-            commandUtil.RunCommand(that.initialize, function(error, output) {
+            commandUtil.RunCommand(that.initialize, false, function(error, output) {
                 if (error !== null) {
                     done(error);
                     return;
