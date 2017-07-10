@@ -12,6 +12,25 @@ exports.SetDefault = function(value, defaultValue) {
     return (value === undefined || value === null) ? defaultValue : value;
 };
 
+/**
+ * CheckCommandObject
+ * function that checks whether or not the input is a valid command object.
+ * @param object
+ * @return boolean
+ */
+var IsCommandObjectValid = function(commandObj) {
+    res = true;
+    if(!commandObj) {
+        res = false;
+    } else if (! commandObj.image) {
+        res = false;
+    } else if (! commandObj.args) {
+        res = false;
+    } else if (! commandObj.path) {
+        res = false;
+    }
+    return res;
+}
 
 /**
  * RunCommand
@@ -20,6 +39,12 @@ exports.SetDefault = function(value, defaultValue) {
  * @param {function} callback
  */
 exports.RunCommand = function(commandObj, callback) {
+    if (!IsCommandObjectValid(commandObj)) {
+        logger.log('error', `Error running command: ${JSON.stringify(commandObj)}`);
+        callback(new Error(`Varible commandObj is not valid, ${stringify(commandObj)}`), null);
+        return;
+    }
+
     // Add the number of requests set to the arguments.
     const args = dockerArgs.concat([commandObj.image, commandObj.path]).concat(commandObj.args);
 
