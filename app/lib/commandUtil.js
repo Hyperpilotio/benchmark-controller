@@ -57,7 +57,13 @@ exports.RunBenchmark = function(commandObj, results, tags, callback) {
         // Parse the output of benchmark to an object.
         const parser = new Parser(commandObj);
         const lines = output.split("\n");
-        const benchmarkObj = parser.processLines(lines);
+        let benchmarkObj = {}
+        try {
+            benchmarkObj = parser.processLines(lines);
+        } catch(err) {
+            logger.log('warning', `Parser failed with exception: ${err}, output: ${lines}`);
+            callback(err);
+        }
         // Return the resulting benchmarks data object.
         var result = {};
         for (var i in tags) {

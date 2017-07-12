@@ -49,6 +49,8 @@ Calibration.prototype.computeNextLatencyArgs = function() {
     lastRunResult = this.summaries[this.summaries.length - 1];
     lastRunMetric = lastRunResult.qos;
 
+    logger.log('info', `Last run metric ${lastRunMetric}, slo value: ${this.slo.value}`);
+
     if (lastRunMetric < this.slo.value) {
         if (this.summaries.length == MAX_STAGES) {
             return new types.Result({
@@ -62,6 +64,8 @@ Calibration.prototype.computeNextLatencyArgs = function() {
             newIntensityArgs[intensityArg.name] = lastRunResult.intensityArgs[intensityArg.name] + intensityArg.step;
         }
 
+        this.lastMaxSummary = lastRunResult
+
         return new types.Result({
             value: {
                 nextArgs: newIntensityArgs
@@ -69,9 +73,6 @@ Calibration.prototype.computeNextLatencyArgs = function() {
         });
     } else {
         if (lastRunMetric == this.slo.value) {
-            // For throughput slo, we want to find the run that just runs past the goal,
-            // assuming we're increasing intesnity over time.
-            // For latency slo, we also just return the last run that meets the slo goal.
             finalResults = {
                 intensityArgs: this.summaries[this.summaries.length - 1].intensityArgs,
                 qos: lastRunMetric
@@ -115,6 +116,7 @@ Calibration.prototype.computeNextThroughputArgs = function() {
 
     lastRunResult = this.summaries[this.summaries.length - 1];
     lastRunMetric = lastRunResult.qos;
+    logger.log('info', `Last run metric ${lastRunMetric}, slo value: ${this.slo.value}`);
 
     if (lastRunMetric > this.lastMaxSummary.qos) {
         this.lastMaxSummary = lastRunResult;
@@ -131,10 +133,7 @@ Calibration.prototype.computeNextThroughputArgs = function() {
 
         return new types.Result({
             value: {
-                finalResults: {
-                    intensityArgs: this.lastMaxSummary.intensityArgs,
-                    qos: this.lastMaxSummary.qos
-                }
+                finalResults: this.lastMaxSummary
             }
         });
     }
@@ -188,7 +187,16 @@ function createCalibrationFunc(that) {
             intensityArgs: that.argValues
         }, function(error) {
             if (error !== null && error !== undefined) {
-                done(error);
+                logger.log('info', `Found error from last run, returning best known results`);
+
+                if (this.lastMaxSummary.qos === 0.0) {
+                    done(new Error("No intensities can match sla goal"));
+                    return
+                }
+
+                logger.log('info', `Final results found:  ${JSON.stringify(this.lastMaxSummary)}`);
+                that.finalResults = this.lastMaxSummary;
+                done();
                 return
             }
 

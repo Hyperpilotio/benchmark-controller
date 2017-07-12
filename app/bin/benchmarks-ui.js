@@ -219,18 +219,17 @@ app.post('/api/benchmarks', function(req, res) {
     runBenchmark(benchmarkOpts, function(err, results) {
         if (err !== null) {
             logger.log('error', `Error found with benchmark: ${err}`);
-            benchmark = benchmarks[benchmarkOpts.stageId]
+            benchmark = benchmarks[benchmarkOpts.stageId];
             benchmark.status = "failed";
-            benchmark.error = err.message
-
+            benchmark.error = err.message;
         } else {
             logger.log('info', `Benchmark finished for stage ${benchmarkOpts.stageId}`);
             for (let result in results) {
               metricModel.SaveMetric(result);
             }
-            benchmark = benchmarks[benchmarkOpts.stageId]
+            benchmark = benchmarks[benchmarkOpts.stageId];
             benchmark.status = "success";
-            benchmark.results = results
+            benchmark.results = results;
         }
     });
 
