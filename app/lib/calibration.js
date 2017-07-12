@@ -189,13 +189,13 @@ function createCalibrationFunc(that) {
             if (error !== null && error !== undefined) {
                 logger.log('info', `Found error from last run, returning best known results`);
 
-                if (this.lastMaxSummary.qos === 0.0) {
+                if (that.lastMaxSummary.qos === 0.0) {
                     done(new Error("No intensities can match sla goal"));
                     return
                 }
 
-                logger.log('info', `Final results found:  ${JSON.stringify(this.lastMaxSummary)}`);
-                that.finalResults = this.lastMaxSummary;
+                logger.log('info', `Final results found:  ${JSON.stringify(that.lastMaxSummary)}`);
+                that.finalResults = that.lastMaxSummary;
                 done();
                 return
             }
