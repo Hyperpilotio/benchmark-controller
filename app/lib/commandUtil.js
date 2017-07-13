@@ -7,12 +7,6 @@ const dockerPath = 'docker';
 // --privileged be able to access the host. Permission is required by dind (docker in docker)
 const dockerArgs = ['run', '--rm'];
 
-const dockerPath = 'docker';
-const  dockerArgs = ['run'];
-
-const dockerPath = 'docker';
-const  dockerArgs = ['run'];
-
 var exports = module.exports = {};
 
 exports.SetDefault = function(value, defaultValue) {
