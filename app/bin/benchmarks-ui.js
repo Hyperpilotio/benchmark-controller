@@ -244,7 +244,7 @@ var runBenchmark = function(options, callback) {
     // Assume the options sent are options appropriate for Benchmark
     try {
       const benchmark = new Benchmark(options);
-      logger.log('info', `Running benchmark id [options.stageId]`);
+      logger.log('info', `Running benchmark id [${options.stageId}]`);
 
       // Run the benchmark and pass the output to the calling function.
       benchmark.flow(function(err, output) {
