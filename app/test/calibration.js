@@ -63,5 +63,32 @@ describe('lib/calibration', function() {
                assert.notEqual(null, result.error);
                done();
            });
+        it('should last known good result when run failed',
+           function(done) {
+               config = {
+                   initialize: {},
+                   loadTest: {
+                       path: "exit",
+                       args: ["1"],
+                       intensityArgs: []
+                   },
+                   slo: {value: 100, metric: "key", type: "throughput"}
+               };
+               const calibration = new Calibration(config);
+               calibration.lastMaxSummary = {qos: 80};
+               calibration.summaries.push(
+                   {
+                       qos: 50,
+                       intensityArgs: {
+                           argA: 20,
+                       }
+                   });
+
+               calibration.lastMaxRuns = 5;
+               calibration.createCalibrationFunc()(function(error, output) {
+                   assert.equal(80, calibration.finalResults.qos);
+                   done();
+               });
+           });
     });
 });

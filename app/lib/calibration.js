@@ -49,7 +49,7 @@ Calibration.prototype.computeNextLatencyArgs = function() {
     lastRunResult = this.summaries[this.summaries.length - 1];
     lastRunMetric = lastRunResult.qos;
 
-    logger.log('info', `Last run metric ${lastRunMetric}, slo value: ${this.slo.value}`);
+    logger.log('info', `Last run latency metric ${lastRunMetric}, slo value: ${this.slo.value}`);
 
     if (lastRunMetric < this.slo.value) {
         if (this.summaries.length == MAX_STAGES) {
@@ -116,7 +116,7 @@ Calibration.prototype.computeNextThroughputArgs = function() {
 
     lastRunResult = this.summaries[this.summaries.length - 1];
     lastRunMetric = lastRunResult.qos;
-    logger.log('info', `Last run metric ${lastRunMetric}, slo value: ${this.slo.value}`);
+    logger.log('info', `Last run throughput metric ${lastRunMetric}, slo value: ${this.slo.value}`);
 
     if (lastRunMetric > this.lastMaxSummary.qos) {
         this.lastMaxSummary = lastRunResult;
@@ -166,7 +166,8 @@ Calibration.prototype.computeNextIntensityArgs = function() {
     }
 }
 
-function createCalibrationFunc(that) {
+Calibration.prototype.createCalibrationFunc = function() {
+    let that = this;
     return function(done) {
         args = that.loadTest.args.slice();
         for (i = 0; i < that.loadTest.intensityArgs.length; i++) {
@@ -191,19 +192,19 @@ function createCalibrationFunc(that) {
 
                 if (that.lastMaxSummary.qos === 0.0) {
                     done(new Error("No intensities can match sla goal"));
-                    return
+                    return;
                 }
 
                 logger.log('info', `Final results found:  ${JSON.stringify(that.lastMaxSummary)}`);
                 that.finalResults = that.lastMaxSummary;
                 done();
-                return
+                return;
             }
 
             if (that.stageResults.length < that.runsPerIntensity) {
                 logger.log('info', `Running # ${that.stageResults.length + 1} calibration run for the same intensity`);
                 createCalibrationFlowFunc(that)(done);
-                return
+                return;
             }
 
             lastRunMetrics = 0.0;
@@ -225,12 +226,12 @@ function createCalibrationFunc(that) {
             if (result.error !== null) {
                 logger.log('error',`Unexpected error when finding next intensity arg: ${result.error}` );
                 done(result.error);
-                return
+                return;
             } else if (result.value.finalResults !== undefined) {
                 logger.log('info', `Final results found:  ${JSON.stringify(result.value.finalResults)}`);
                 that.finalResults = result.value.finalResults;
                 done();
-                return
+                return;
             }
 
             logger.log('info', `Setting next intensity args to ${JSON.stringify(result.value.nextArgs)}`);
@@ -247,13 +248,13 @@ function createCalibrationFlowFunc(that) {
             commandUtil.RunCommand(that.initialize, false, function(error, output) {
                 if (error !== null) {
                     done(error);
-                    return
+                    return;
                 }
 
-                createCalibrationFunc(that)(done)
+                that.createCalibrationFunc()(done)
             })
         } else {
-                createCalibrationFunc(that)(done)
+                that.createCalibrationFunc()(done)
         }
     }
 }

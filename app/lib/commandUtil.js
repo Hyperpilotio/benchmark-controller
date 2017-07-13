@@ -63,7 +63,9 @@ exports.RunBenchmark = function(commandObj, results, tags, callback) {
         } catch(err) {
             logger.log('warning', `Parser failed with exception: ${err}, output: ${lines}`);
             callback(err);
+            return;
         }
+
         // Return the resulting benchmarks data object.
         var result = {};
         for (var i in tags) {
