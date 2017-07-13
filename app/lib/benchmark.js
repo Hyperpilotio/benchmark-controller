@@ -6,7 +6,7 @@ const async = require('async');
 const commandUtil = require('./commandUtil.js');
 const logger = require('../config/logger');
 
-function Benchmark(options) {
+function Benchmark(options, parser) {
     if (options.loadTest === undefined || options.loadTest === null) {
         throw new Error("Load test not found in benchmark");
     }
@@ -16,12 +16,13 @@ function Benchmark(options) {
     this.intensity = options.intensity;
     this.cleanup = options.cleanup;
     this.runsPerIntensity = commandUtil.SetDefault(options.runsPerIntensity, 3);
-    this.results = []
+    this.results = [];
+    this.parser = parser;
 }
 
 function createRunFunc(that) {
     return function(done) {
-        commandUtil.RunBenchmark(that.loadTest, that.results, {
+        commandUtil.RunBenchmark(that.loadTest, that.parser, that.results, {
             intensity: that.intensity
         }, done);
     };
