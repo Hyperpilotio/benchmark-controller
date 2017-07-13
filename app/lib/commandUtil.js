@@ -41,7 +41,7 @@ var IsCommandObjectValid = function(commandObj) {
 exports.RunCommand = function(commandObj, collectOutput, callback) {
     if (!IsCommandObjectValid(commandObj)) {
         logger.log('error', `Error running command: ${JSON.stringify(commandObj)}`);
-        callback(new Error(`Variable commandObj is not valid, ${stringify(commandObj)}`), null);
+        callback(new Error(`Variable commandObj is not valid, ${JSON.stringify(commandObj)}`), null);
         return;
     }
 
