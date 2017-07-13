@@ -43,7 +43,7 @@ const checkFieldsExists = function(map, ...fields) {
 };
 
 const generateBenchmarkOpts = function(requestBody) {
-    field = checkFieldsExists(requestBody, "loadTest", "stageId", "intensity");
+    field = checkFieldsExists(requestBody, "loadTest", "stageId", "intensity", 'parserUrl');
     if (field !== null) {
         return [{}, "Field not found: " + field];
     }
@@ -55,14 +55,15 @@ const generateBenchmarkOpts = function(requestBody) {
             loadTest: requestBody.loadTest,
             intensity: requestBody.intensity,
             cleanup: requestBody.cleanup,
-            stageId: requestBody.stageId
+            stageId: requestBody.stageId,
+            parserUrl: requestBody.parserUrl
         },
         null
     ];
 };
 
 const generateCalibrationOpts = function(requestBody) {
-    field = checkFieldsExists(requestBody, "loadTest", "slo", "stageId");
+    field = checkFieldsExists(requestBody, "loadTest", "slo", "stageId", 'parserUrl');
     if (field !== null) {
         return [{}, "Field not found: " + field];
     }
@@ -73,7 +74,8 @@ const generateCalibrationOpts = function(requestBody) {
             initializeType: requestBody.initializeType,
             loadTest: requestBody.loadTest,
             slo: requestBody.slo,
-            stageId: requestBody.stageId
+            stageId: requestBody.stageId,
+            parserUrl: requestBody.parserUrl
         },
         null
     ];
