@@ -12,6 +12,7 @@ var bodyParser = require('body-parser');
 var os = require('os');
 var querystring = require("querystring");
 
+const parserUtil = require('../lib/parserUtil');
 const logger = require('../config/logger');
 const config = require('../config/config.js');
 const metricModel = function() {
@@ -136,6 +137,8 @@ app.post('/', function(req, res) {
                 "error": err.message
             });
         }
+    }).catch((err)=>{
+        logger.log('error', `Failed to run runCalibration: ${err.message}`);
     });
 });
 
@@ -163,14 +166,14 @@ app.get('/api/calibrate/:stageId', function(req, res) {
 
 app.post('/api/calibrate', function(req, res) {
     res.contentType('application/json');
-    [request, error] = generateCalibrationOpts(req.body)
+    [request, error] = generateCalibrationOpts(req.body);
     if (error !== null) {
         res.status(400).json({"error": error});
         return
     }
 
     if (calibrations[request.stageId] && calibrations[request.stageId].status === "running") {
-      res.status(400).json({"error": "Benchmark for stage Id " + request.stageId + " already running"});
+      res.status(400).json({'error': `Benchmark for stage Id ${request.stageId} already running`});
       return
     }
 
@@ -192,6 +195,8 @@ app.post('/api/calibrate', function(req, res) {
             calibration.status = "success";
             calibration.results = {finalResults: results.finalResults, runResults: results.runResults}
         }
+    }).catch((err)=>{
+        logger.log('error', `Failed to run runCalibration: ${err.message}`);
     });
 
     res.sendStatus(202);
@@ -231,21 +236,36 @@ app.post('/api/benchmarks', function(req, res) {
             benchmark.status = "success";
             benchmark.results = results;
         }
+    }).catch((err)=>{
+        logger.log('error', `Failed to run runCalibration: ${err.message}`);
     });
 
     res.sendStatus(202);
 });
 
-var runBenchmark = function(options, callback) {
+const runBenchmark = async function(options, callback) {
     /**
      * Run a benchmark for the server given in options.
      */
 
+    let parser = null;
+    try {
+        logger.log('info', `Downloading parser for calibration id ${options.stageId}`);
+        parser = await parserUtil.CreateParserAsync(options.stageId, options.parserUrl).catch((err)=>{
+            callback(new Error(`Failed to create parser for stageId ${options.stageId}
+            Error message: ${err.message}`), null);
+        });
+    } catch (e) {
+        logger.log('error',
+        `Failed to create the parser for stage ${options.stageId}
+        Error message: ${JSON.stringify(e)}`);
+        return callback(err, null);
+    }
+
     // Assume the options sent are options appropriate for Benchmark
     try {
-      const benchmark = new Benchmark(options);
+      const benchmark = new Benchmark(options, parser);
       logger.log('info', `Running benchmark id [${options.stageId}]`);
-
       // Run the benchmark and pass the output to the calling function.
       benchmark.flow(function(err, output) {
           callback(err, output);
@@ -255,21 +275,35 @@ var runBenchmark = function(options, callback) {
     }
 };
 
-var runCalibration = function(options, callback) {
+const runCalibration = async function(options, callback) {
     /**
      * Run calibration for the server given in options.
      */
 
+    let parser = null;
     try {
-      const calibration = new Calibration(options);
-      logger.log('info', `Running calibration id [${options.stageId}]`);
+        logger.log('info', `Downloading parser for calibration id ${options.stageId}`);
+        parser = await parserUtil.CreateParserAsync(options.stageId, options.parserUrl).catch((err)=>{
+            callback(new Error(`Failed to create parser for stageId ${options.stageId}
+            Error message: ${err.message}`), null);
+        });
+    } catch (e) {
+        logger.log('error',
+        `Failed to create the parser for stage ${options.stageId}
+        Error message: ${JSON.stringify(e)}`);
+        return callback(err, null);
+    }
 
-      // Run the benchmark and pass the output to the calling function.
-      calibration.flow(function(err, output) {
-          callback(err, output);
-      });
+    const calibration = new Calibration(options, new parser());
+
+    try {
+        logger.log('info', `Running calibration id [${options.stageId}]`);
+        // Run the benchmark and pass the output to the calling function.
+        calibration.flow(function(err, output) {
+            callback(err, output);
+        });
     } catch (err) {
-      callback(err, null);
+        callback(err, null);
     }
 };
 
