@@ -6,10 +6,11 @@ const async = require('async');
 const commandUtil = require('./commandUtil.js');
 const types = require('./types.js');
 const logger = require('../config/logger');
+const parserUtil = require('./parserUtil');
 
 const MAX_STAGES = 50;
 
-function Calibration(options) {
+function Calibration(options, parser) {
     if (options.loadTest === undefined || options.loadTest === null) {
         throw new Error("Load test not found in benchmark");
     }
@@ -36,6 +37,7 @@ function Calibration(options) {
     this.lastMaxSummary = {
         qos: 0.0
     };
+    this.parser = parser;
 }
 
 Calibration.prototype.computeNextLatencyArgs = function() {
@@ -184,14 +186,14 @@ Calibration.prototype.createCalibrationFunc = function() {
             args.push(that.argValues[intensityArg.name]);
         }
 
-        command = {
+        const command = {
             image: that.loadTest.image,
             path: that.loadTest.path,
             args: args
         }
         logger.log('info',`Running calibration benchmark: ${JSON.stringify(command)}` );
 
-        commandUtil.RunBenchmark(command, that.stageResults, {
+        commandUtil.RunBenchmark(command, that.parser, that.stageResults, {
             intensityArgs: that.argValues
         }, function(error) {
             if (error !== null && error !== undefined) {
@@ -285,7 +287,11 @@ function createCalibrationFlowFunc(that) {
     }
 }
 
-Calibration.prototype.flow = function(callback) {
+Calibration.prototype.InitParserAsync = function(stageID, url) {
+    return parserUtil.CreateParserAsync(stageID, url);
+}
+
+Calibration.prototype.flow = async function(callback) {
     var that = this;
 
     let commands = [];
