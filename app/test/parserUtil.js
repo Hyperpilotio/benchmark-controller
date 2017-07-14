@@ -7,7 +7,7 @@ describe('ParserUtil', function () {
     describe('#redis', function () {
         it('should download the parser if an url is given',
             async function () {
-                this.timeout(1000);
+                this.timeout(1500);
                 const input = PARSER_UTIL_DATASET.input.redis;
                 const expect = PARSER_UTIL_DATASET.expect.redis;
                 try {
@@ -19,7 +19,7 @@ describe('ParserUtil', function () {
             });
         it('should be able to parse data if a parser is created',
             async function () {
-                this.timeout(1000);
+                this.timeout(1500);
                 const input = PARSER_UTIL_DATASET.input.redis;
                 const expect = PARSER_UTIL_DATASET.expect.redis;
                 try {

@@ -14,9 +14,6 @@ const generateParserPath = function (stageID) {
 
 const downloadParserAsync = function (dest, url) {
     return new Promise(function (resolve, reject) {
-        // Make sure we always download latest parser
-        fs.unlink(dest);
-
         const req = request.get(url);
         // verify response code
         req.on('response', function (response) {
@@ -27,7 +24,9 @@ const downloadParserAsync = function (dest, url) {
 
         // check for request errors
         req.on('error', function (err) {
-            fs.unlink(dest);
+            fs.unlink(dest, (err) => {
+                logger.log('warn', 'Failed to unlink file ${dest}');
+            });
             reject(new Error(err.message));
         });
 
@@ -39,7 +38,9 @@ const downloadParserAsync = function (dest, url) {
 
         file.on('error', function (err) {
             // Delete the file async. (But we don't check the result)
-            fs.unlink(dest);
+            fs.unlink(dest, (err) => {
+                logger.log('warn', 'Failed to unlink file ${dest}');
+            });
             reject(err.message);
         });
 
