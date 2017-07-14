@@ -239,7 +239,7 @@ app.post('/api/benchmarks', function(req, res) {
             benchmark.results = results;
         }
     }).catch((err)=>{
-        logger.log('error', `Failed to run runCalibration: ${err.message}`);
+        logger.log('error', `Failed to run benchmark [${benchmarkOpts.stageId}]: ${err.message}`);
     });
 
     res.sendStatus(202);
@@ -253,7 +253,7 @@ const runBenchmark = async function(options, callback) {
     let parser = null;
     try {
         logger.log('info', `Downloading parser for calibration id ${options.stageId}`);
-        parser = await parserUtil.CreateParserAsync(options.stageId, options.parserUrl).catch((err)=>{
+        parser = await parserUtil.CreateParserAsync(options.stageId, options.parserUrl, options).catch((err)=>{
             callback(new Error(`Failed to create parser for stageId ${options.stageId}
             Error message: ${err.message}`), null);
         });
@@ -285,7 +285,7 @@ const runCalibration = async function(options, callback) {
     let parser = null;
     try {
         logger.log('info', `Downloading parser for calibration id ${options.stageId}`);
-        parser = await parserUtil.CreateParserAsync(options.stageId, options.parserUrl).catch((err)=>{
+        parser = await parserUtil.CreateParserAsync(options.stageId, options.parserUrl, options).catch((err)=>{
             callback(new Error(`Failed to create parser for stageId ${options.stageId}
             Error message: ${err.message}`), null);
         });

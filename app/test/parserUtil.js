@@ -11,7 +11,7 @@ describe('ParserUtil', function () {
                 const input = PARSER_UTIL_DATASET.input.redis;
                 const expect = PARSER_UTIL_DATASET.expect.redis;
                 try {
-                    await parserUtil.CreateParserAsync(input.stageId, input.url);
+                    await parserUtil.CreateParserAsync(input.stageId, input.url, {});
                     assert.equal(fs.existsSync(expect.path), true);
                 } catch (e) {
                     assert.fail(e);
@@ -23,8 +23,7 @@ describe('ParserUtil', function () {
                 const input = PARSER_UTIL_DATASET.input.redis;
                 const expect = PARSER_UTIL_DATASET.expect.redis;
                 try {
-                    const Parser = await parserUtil.CreateParserAsync(input.stageId, input.url);
-                    const parser = new Parser({});
+                    const parser = await parserUtil.CreateParserAsync(input.stageId, input.url, {});
                     const lines = input.data.split('\n');
                     const benchmarkObj = parser.processLines(lines);
                     assert.deepEqual(benchmarkObj, expect.output);

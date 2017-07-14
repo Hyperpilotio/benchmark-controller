@@ -1,5 +1,5 @@
 /**
- * This parserManager.js aims at provide useful functions to manage parsers for multiple workloads
+ * This parserUtil.js aims at provide useful functions to manage parsers for multiple workloads
  */
 
 const config = require('../config/config');
@@ -47,10 +47,16 @@ const downloadParserAsync = function (dest, url) {
     });
 }
 
-const CreateParserAsync = async function(stageID, url) {
+/**
+ * 
+ * @param {string} stageID 
+ * @param {string} url 
+ * @param {object} options 
+ */
+const CreateParserAsync = async function(stageID, url, options) {
     const dest = generateParserPath(stageID);
     return downloadParserAsync(dest, url).then(()=>{
-        return require(dest);
+        return new (require(dest))(options);
     });
 }
 

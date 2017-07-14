@@ -271,10 +271,6 @@ function createCalibrationFlowFunc(that) {
     }
 }
 
-Calibration.prototype.InitParserAsync = function(stageID, url) {
-    return parserUtil.CreateParserAsync(stageID, url);
-}
-
 Calibration.prototype.flow = async function(callback) {
     var that = this;
 
