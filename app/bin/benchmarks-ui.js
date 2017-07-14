@@ -43,10 +43,16 @@ const checkFieldsExists = function(map, ...fields) {
 };
 
 const generateBenchmarkOpts = function(requestBody) {
-    field = checkFieldsExists(requestBody, "loadTest", "stageId", "intensity", 'parserUrl');
+    const field = checkFieldsExists(requestBody, "loadTest", "stageId", "intensity");
     if (field !== null) {
         return [{}, "Field not found: " + field];
     }
+
+    const subField = checkFieldsExists(requestBody.loadTest,  'parserUrl');
+    if (subField !== null) {
+        return [{}, `Field of loadTest not found: ${subField}`];
+    }
+
 
     return [
         {
@@ -55,17 +61,21 @@ const generateBenchmarkOpts = function(requestBody) {
             loadTest: requestBody.loadTest,
             intensity: requestBody.intensity,
             cleanup: requestBody.cleanup,
-            stageId: requestBody.stageId,
-            parserUrl: requestBody.parserUrl
+            stageId: requestBody.stageId
         },
         null
     ];
 };
 
 const generateCalibrationOpts = function(requestBody) {
-    field = checkFieldsExists(requestBody, "loadTest", "slo", "stageId", 'parserUrl');
+    const field = checkFieldsExists(requestBody, "loadTest", "slo", "stageId");
     if (field !== null) {
         return [{}, "Field not found: " + field];
+    }
+
+    const subField = checkFieldsExists(requestBody.loadTest,  'parserUrl');
+    if (subField !== null) {
+        return [{}, `Field of loadTest not found: ${subField}`];
     }
 
     return [
@@ -74,8 +84,7 @@ const generateCalibrationOpts = function(requestBody) {
             initializeType: requestBody.initializeType,
             loadTest: requestBody.loadTest,
             slo: requestBody.slo,
-            stageId: requestBody.stageId,
-            parserUrl: requestBody.parserUrl
+            stageId: requestBody.stageId
         },
         null
     ];
@@ -253,7 +262,7 @@ const runBenchmark = async function(options, callback) {
     let parser = null;
     try {
         logger.log('info', `Downloading parser for calibration id ${options.stageId}`);
-        parser = await parserUtil.CreateParserAsync(options.stageId, options.parserUrl, options).catch((err)=>{
+        parser = await parserUtil.CreateParserAsync(options.stageId, options.loadTest.parserUrl, options).catch((err)=>{
             callback(new Error(`Failed to create parser for stageId ${options.stageId}
             Error message: ${err.message}`), null);
         });
@@ -285,7 +294,7 @@ const runCalibration = async function(options, callback) {
     let parser = null;
     try {
         logger.log('info', `Downloading parser for calibration id ${options.stageId}`);
-        parser = await parserUtil.CreateParserAsync(options.stageId, options.parserUrl, options).catch((err)=>{
+        parser = await parserUtil.CreateParserAsync(options.stageId, options.loadTest.parserUrl, options).catch((err)=>{
             callback(new Error(`Failed to create parser for stageId ${options.stageId}
             Error message: ${err.message}`), null);
         });
