@@ -53,7 +53,6 @@ const generateBenchmarkOpts = function(requestBody) {
         return [{}, `Field of loadTest not found: ${subField}`];
     }
 
-
     return [
         {
             initialize: requestBody.initialize,
@@ -305,7 +304,7 @@ const runCalibration = async function(options, callback) {
         return callback(err, null);
     }
 
-    const calibration = new Calibration(options, new parser());
+    const calibration = new Calibration(options, parser);
 
     try {
         logger.log('info', `Running calibration id [${options.stageId}]`);
