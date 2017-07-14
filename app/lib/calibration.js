@@ -179,10 +179,7 @@ Calibration.prototype.createCalibrationFunc = function() {
         args = that.loadTest.args.slice();
         for (i = 0; i < that.loadTest.intensityArgs.length; i++) {
             intensityArg = that.loadTest.intensityArgs[i]
-            if (intensityArg.arg !== undefined) {
-                args.push(intensityArg.arg);
-            }
-
+            args.push(intensityArg.arg);
             args.push(that.argValues[intensityArg.name]);
         }
 
