@@ -18,14 +18,19 @@ const downloadParserAsync = function (dest, url) {
         // verify response code
         req.on('response', function (response) {
             if (response.statusCode !== 200) {
-                reject(new Error(`Response status was ${response.statusCode}`));
+                errMessage = `Response status was ${response.statusCode} from url ${url}`;
+                logger.log('warn', `${errMessage}`);
+                logger.log('verbose', `Response${response}`);
+                reject(new Error(errMessage));
             }
         });
 
         // check for request errors
         req.on('error', function (err) {
+            logger.log('warn', `Failed to download parser from ${url} to destination ${dest}
+            Error message ${err.message}`);
             fs.unlink(dest, (err) => {
-                logger.log('warn', 'Failed to unlink file ${dest}');
+                logger.log('warn', `Failed to unlink file ${dest}`);
             });
             reject(new Error(err.message));
         });
@@ -37,6 +42,8 @@ const downloadParserAsync = function (dest, url) {
         });
 
         file.on('error', function (err) {
+            logger.log('warn', `Failed to write parser from ${url} into destination ${dest}
+            Error message: ${err.message}`);
             // Delete the file async. (But we don't check the result)
             fs.unlink(dest, (err) => {
                 logger.log('warn', 'Failed to unlink file ${dest}');
