@@ -1,6 +1,11 @@
 const spawn = require('child_process').spawn;
-const Parser = require('../extension-lib/parser.js');
 const logger = require('../config/logger');
+const parserUtil = require('./parserUtil');
+
+const dockerPath = 'docker';
+// --rm: we don't end up a lot of containers on the host not cleaned up
+// --privileged be able to access the host. Permission is required by dind (docker in docker)
+const dockerArgs = ['run', '--rm'];
 
 var exports = module.exports = {};
 
@@ -8,17 +13,50 @@ exports.SetDefault = function(value, defaultValue) {
     return (value === undefined || value === null) ? defaultValue : value;
 };
 
+/**
+ * CheckCommandObject
+ * function that checks whether or not the input is a valid command object.
+ * @param  object commandObj
+ * @param  boolean parserRequired
+ * @return boolean
+ */
+var IsCommandObjectValid = function(commandObj, parserRequired) {
+    res = true;
+    if(!commandObj) {
+        res = false;
+    } else if (!commandObj.image) {
+        res = false;
+    } else if (!commandObj.args) {
+        res = false;
+    } else if (!commandObj.path) {
+        res = false;
+    }
+    return res;
+}
+
+/**
+ * RunCommand
+ * function to execute the given command.
+ * @param {object} commandObj
+ * @param {boolean} collectOutput
+ * @param {function} callback
+ */
 exports.RunCommand = function(commandObj, collectOutput, callback) {
+    if (!IsCommandObjectValid(commandObj, collectOutput)) {
+        logger.log('error', `Error running command: ${JSON.stringify(commandObj)}`);
+        callback(new Error(`Variable commandObj is not valid, ${JSON.stringify(commandObj)}`), null);
+        return;
+    }
+
     // Add the number of requests set to the arguments.
-    const args = commandObj.args;
-    const path = commandObj.path;
+    const args = dockerArgs.concat([commandObj.image, commandObj.path]).concat(commandObj.args);
 
     // Spawn the child process to run the benchmark.
-    const child = spawn(path, args);
+    const child = spawn(dockerPath, args);
 
     // Collect stdout into a CSV string.
-    let output = "";
-    let error_output = "";
+    let output = '';
+    let error_output = '';
     child.stdout.on('data', function(data) {
         if (collectOutput) {
             output += data;
@@ -47,15 +85,13 @@ exports.RunCommand = function(commandObj, collectOutput, callback) {
     });
 };
 
-exports.RunBenchmark = function(commandObj, results, tags, callback) {
+exports.RunBenchmark = function(commandObj, parser, results, tags, callback) {
     exports.RunCommand(commandObj, true, function(error, output) {
         if (error !== null) {
             callback(error);
             return;
         }
 
-        // Parse the output of benchmark to an object.
-        const parser = new Parser(commandObj);
         const lines = output.split("\n");
         let benchmarkObj = {}
         try {
@@ -67,8 +103,8 @@ exports.RunBenchmark = function(commandObj, results, tags, callback) {
         }
 
         // Return the resulting benchmarks data object.
-        var result = {};
-        for (var i in tags) {
+        const result = {};
+        for (let i in tags) {
             result[i] = tags[i];
         }
         result["results"] = benchmarkObj;

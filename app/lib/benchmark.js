@@ -4,8 +4,9 @@
 const util = require('util');
 const async = require('async');
 const commandUtil = require('./commandUtil.js');
+const logger = require('../config/logger');
 
-function Benchmark(options) {
+function Benchmark(options, parser) {
     if (options.loadTest === undefined || options.loadTest === null) {
         throw new Error("Load test not found in benchmark");
     }
@@ -15,12 +16,13 @@ function Benchmark(options) {
     this.intensity = options.intensity;
     this.cleanup = options.cleanup;
     this.runsPerIntensity = commandUtil.SetDefault(options.runsPerIntensity, 3);
-    this.results = []
+    this.results = [];
+    this.parser = parser;
 }
 
 function createRunFunc(that) {
     return function(done) {
-        commandUtil.RunBenchmark(that.loadTest, that.results, {
+        commandUtil.RunBenchmark(that.loadTest, that.parser, that.results, {
             intensity: that.intensity
         }, done);
     };
@@ -31,7 +33,7 @@ Benchmark.prototype.flow = function(callback) {
     var funcs = []
 
     if (that.initializeType == "stage" && that.initialize !== undefined && that.initialize !== null) {
-        console.log("Initializing benchmark on each stage");
+        logger.log("Initializing benchmark on each stage");
         initialize = that.initialize;
         funcs.push(function(done) {
             commandUtil.RunCommand(initialize, false, done);
@@ -40,7 +42,7 @@ Benchmark.prototype.flow = function(callback) {
 
     for (i = 0; i < that.runsPerIntensity; i++) {
         if (that.initializeType == "run" && that.initialize !== undefined && that.initialize !== null) {
-            console.log("Initializing benchmark on each run");
+            logger.log('info', 'Initializing benchmark on each run');
             initialize = that.initialize;
             funcs.push(function(done) {
                 commandUtil.RunCommand(initialize, false, done);
@@ -48,7 +50,7 @@ Benchmark.prototype.flow = function(callback) {
         }
         funcs.push(createRunFunc(that));
         if (that.cleanup !== undefined && that.cleanup !== null) {
-            console.log("Cleaning up benchmark")
+            logger.log('info', 'Cleaning up benchmark');
             cleanup = that.cleanup;
             funcs.push(function(done) {
                 commandUtil.RunCommand(cleanup, false, done);

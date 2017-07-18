@@ -1,6 +1,7 @@
-FROM    node:latest
-ENV     NODE_ENV=production
+FROM node:latest 
+
 ADD     app /app
 WORKDIR /app
 RUN     npm install
-CMD     node /app/bin/index.js
+
+CMD    ["npm", "start"] 

@@ -3,7 +3,7 @@ const assert = require('assert');
 describe('lib/calibration', function() {
     const Calibration = require('../lib/calibration');
     describe('#computeNextIntensityArgs()', function() {
-        it('should successfully compute next attempted intesnity when latency metric is below slo',
+        it('should successfully compute next attempted intensity when latency metric is below slo',
            function(done) {
                config = {
                    initialize: {},
@@ -21,7 +21,7 @@ describe('lib/calibration', function() {
                    },
                    slo: {value: 100, metric: "key", type: "latency"}
                };
-               const calibration = new Calibration(config);
+               const calibration = new Calibration(config, new ((require('../extension-lib/parser'))));
                calibration.summaries.push(
                    {
                        qos: 80,
@@ -49,7 +49,7 @@ describe('lib/calibration', function() {
                    },
                    slo: {value: 100, metric: "key", type: "throughput"}
                };
-               const calibration = new Calibration(config);
+               const calibration = new Calibration(config, new ((require('../extension-lib/parser'))));
                calibration.lastMaxSummary = {qos: 80};
                calibration.summaries.push(
                    {

@@ -5,12 +5,12 @@ const util = require('util');
 const async = require('async');
 const commandUtil = require('./commandUtil.js');
 const types = require('./types.js');
-const Parser = require('../extension-lib/parser.js');
 const logger = require('../config/logger');
+const parserUtil = require('./parserUtil');
 
 const MAX_STAGES = 50;
 
-function Calibration(options) {
+function Calibration(options, parser) {
     if (options.loadTest === undefined || options.loadTest === null) {
         throw new Error("Load test not found in benchmark");
     }
@@ -37,6 +37,7 @@ function Calibration(options) {
     this.lastMaxSummary = {
         qos: 0.0
     };
+    this.parser = parser;
 }
 
 Calibration.prototype.computeNextLatencyArgs = function() {
@@ -58,10 +59,13 @@ Calibration.prototype.computeNextLatencyArgs = function() {
             });
         }
 
-        newIntensityArgs = {}
+        newIntensityArgs = {};
         for (i = 0; i < this.loadTest.intensityArgs.length; i++) {
             intensityArg = this.loadTest.intensityArgs[i];
-            newIntensityArgs[intensityArg.name] = lastRunResult.intensityArgs[intensityArg.name] + intensityArg.step;
+            // NOTE There is a chance that variable intesnityArgs is string and
+            // intensityArg.step is string too. We want the sum of two number instead of
+            // two strings. As a result, we use `Number` to ensure the arguments are numbers.
+            newIntensityArgs[intensityArg.name] = Number(lastRunResult.intensityArgs[intensityArg.name]) + Number(intensityArg.step);
         }
 
         this.lastMaxSummary = lastRunResult
@@ -143,7 +147,10 @@ Calibration.prototype.computeNextThroughputArgs = function() {
     newIntensityArgs = {}
     for (i = 0; i < this.loadTest.intensityArgs.length; i++) {
         intensityArg = this.loadTest.intensityArgs[i];
-        newIntensityArgs[intensityArg.name] = lastRunResult.intensityArgs[intensityArg.name] + intensityArg.step;
+        // NOTE There is a chance that variable intesnityArgs is string and
+        // intensityArg.step is string too. We want the sum of two number instead of
+        // two strings. As a result, we use `Number` to ensure the arguments are numbers.
+        newIntensityArgs[intensityArg.name] = Number(lastRunResult.intensityArgs[intensityArg.name]) + Number(intensityArg.step);
     }
 
     return new types.Result({
@@ -172,19 +179,18 @@ Calibration.prototype.createCalibrationFunc = function() {
         args = that.loadTest.args.slice();
         for (i = 0; i < that.loadTest.intensityArgs.length; i++) {
             intensityArg = that.loadTest.intensityArgs[i]
-            if (intensityArg.arg !== undefined) {
-                args.push(intensityArg.arg);
-            }
+            args.push(intensityArg.arg);
             args.push(that.argValues[intensityArg.name]);
         }
 
-        command = {
+        const command = {
+            image: that.loadTest.image,
             path: that.loadTest.path,
             args: args
         }
         logger.log('info',`Running calibration benchmark: ${JSON.stringify(command)}` );
 
-        commandUtil.RunBenchmark(command, that.stageResults, {
+        commandUtil.RunBenchmark(command, that.parser, that.stageResults, {
             intensityArgs: that.argValues
         }, function(error) {
             if (error !== null && error !== undefined) {
@@ -244,7 +250,10 @@ Calibration.prototype.createCalibrationFunc = function() {
 function createCalibrationFlowFunc(that) {
     return function(done) {
         if (that.initializeType == "run" && that.initialize !== undefined && that.initialize !== null) {
-            console.log("Initializing calibration: " + JSON.stringify({path: that.initialize.path, args: that.initialize.args}))
+            logger.log('info', `Initializing calibration: ${JSON.stringify({
+                image: that.initialize.image,
+                path: that.initialize.path,
+                args: that.initialize.args})}`);
             commandUtil.RunCommand(that.initialize, false, function(error, output) {
                 if (error !== null) {
                     done(error);
@@ -259,7 +268,7 @@ function createCalibrationFlowFunc(that) {
     }
 }
 
-Calibration.prototype.flow = function(callback) {
+Calibration.prototype.flow = async function(callback) {
     var that = this;
 
     let commands = [];
