@@ -6,6 +6,7 @@ const config = require('../config/config');
 const fs = require('fs');
 const path = require('path');
 const request = require('request');
+const logger = require('../config/logger');
 
 const generateParserPath = function (stageID) {
     const dest = config.parserStoragePath ? config.parserStoragePath : '/tmp';
