@@ -4,8 +4,7 @@ const parserUtil = require('./parserUtil');
 
 const dockerPath = 'docker';
 // --rm: we don't end up a lot of containers on the host not cleaned up
-// --privileged be able to access the host. Permission is required by dind (docker in docker)
-const dockerArgs = ['run', '--rm'];
+const dockerArgs = ['run', '--rm', '--net', 'host'];
 
 var exports = module.exports = {};
 
