@@ -9,8 +9,8 @@ const request = require('request');
 const logger = require('../config/logger');
 
 const generateParserPath = function (stageID) {
-    const dest = config.parserStoragePath ? config.parserStoragePath : '/tmp';
-    return path.join(dest, `${stageID}.js`);
+    const dest = config.parserStoragePath ? config.parserStoragePath : '.';
+    return path.join(path.dirname(__filename), dest, `${stageID}.js`);
 }
 
 const downloadParserAsync = function (dest, url) {
@@ -57,16 +57,17 @@ const downloadParserAsync = function (dest, url) {
 }
 
 /**
- * 
- * @param {string} stageID 
- * @param {string} url 
- * @param {object} options 
+ *
+ * @param {string} stageID
+ * @param {string} url
+ * @param {object} options
  */
 const CreateParserAsync = async function(stageID, url, options) {
-    const dest = generateParserPath(stageID);
-    return downloadParserAsync(dest, url).then(()=>{
-        return new (require(dest))(options);
-    });
+    // copy it into current project root directory
+    let tmpFile = generateParserPath(stageID)
+    return downloadParserAsync(tmpFile, url).then(()=>{
+        return new (require(tmpFile))(options);
+    })
 }
 
 module.exports = {

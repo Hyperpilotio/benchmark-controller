@@ -90,7 +90,6 @@ exports.RunBenchmark = function(commandObj, parser, results, tags, callback) {
             callback(error);
             return;
         }
-
         const lines = output.split("\n");
         let benchmarkObj = {}
         try {

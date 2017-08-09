@@ -194,6 +194,7 @@ Calibration.prototype.createCalibrationFunc = function() {
             intensityArgs: that.argValues
         }, function(error) {
             if (error !== null && error !== undefined) {
+                logger.log('error', `Found error ${error}`)
                 logger.log('info', `Found error from last run, returning best known results`);
 
                 if (that.lastMaxSummary.qos === 0.0) {

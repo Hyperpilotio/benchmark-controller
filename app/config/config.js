@@ -11,7 +11,7 @@ var config = {
         "host": "mongosrv",
         "port": "27017"
     },
-    'parserStoragePath': '/tmp',
+    'parserStoragePath': '.',
     'logLevel': 'info',
     "host": "0.0.0.0",
     "port": 6001
