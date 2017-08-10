@@ -8,26 +8,10 @@ const path = require('path');
 const request = require('request');
 const logger = require('../config/logger');
 
-const makeDirs = (filePath) => {
-    let currentPath = path.isAbsolute(filePath) ? '/' : '';
-    let separator = path.sep;
-    let splitDir = filePath.split(separator)
-
-    for (let i = 0; i < splitDir.length; i++) {
-        currentPath = path.resolve(currentPath, splitDir[i])
-        if (!fs.existsSync(currentPath)) {
-            fs.mkdirSync(currentPath)
-        }
-    }
-}
-
 const generateParserPath = function (stageID) {
-    const dest = config.parserStoragePath ? config.parserStoragePath : '.';
     let rootDir = path.dirname(__filename)
-    let targetDir = path.join(rootDir, dest)
-    filePath = path.join(targetDir, `${stageID}.js`);
-    makeDirs(targetDir)
-    return filePath
+    parserPath = path.join(rootDir, `${stageID}.js`);
+    return parserPath
 }
 
 const downloadParserAsync = function (dest, url) {
@@ -84,7 +68,6 @@ const CreateParserAsync = async function(stageID, url, options) {
     let tmpFile = generateParserPath(stageID)
     return downloadParserAsync(tmpFile, url).then(()=>{
         parser = new (require(tmpFile))(options);
-        console.log(JSON.stringify(parser))
         return parser
     })
 }
