@@ -129,6 +129,8 @@ const BENCHMARK_DATASET = {
     }]
 };
 
+console.log(path.resolve('lib', 'hyerpilot_redis_parser.js'))
+
 const PARSER_UTIL_DATASET = {
     'input': {
         'redis': {
@@ -155,7 +157,7 @@ const PARSER_UTIL_DATASET = {
     },
     'expect': {
         'redis': {
-            'path': path.join('/tmp', 'hyperpilot_redis_parser.js'),
+            'path': path.resolve('lib', 'hyperpilot_redis_parser.js'),
             'output': {
                 'PING_INLINE': '23809.52',
                 'PING_BULK': '58823.53',
