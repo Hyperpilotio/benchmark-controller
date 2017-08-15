@@ -9,9 +9,9 @@ const request = require('request');
 const logger = require('../config/logger');
 
 const generateParserPath = function (stageID) {
-    let rootDir = path.dirname(__filename)
+    let rootDir = path.dirname(__filename);
     parserPath = path.join(rootDir, `${stageID}.js`);
-    return parserPath
+    return parserPath;
 }
 
 const downloadParserAsync = function (dest, url) {

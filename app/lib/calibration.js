@@ -131,7 +131,7 @@ Calibration.prototype.computeNextThroughputArgs = function() {
     if (this.lastMaxRuns >= 5 || this.summaries.length == MAX_STAGES) {
         if (this.slo.value > this.lastMaxSummary.qos) {
             return new types.Result({
-                error: "Cannot find configuration that meets SLO"
+                error: `Cannot find configuration that meets SLO, slo value: ${this.slo.value}, last max seen: ${this.lastMaxSummary.qos}`
             });
         }
 

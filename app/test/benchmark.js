@@ -13,6 +13,7 @@ describe('lib/benchmark', function () {
                 const parser = input.parser();
                 const benchmark = new Benchmark(input.options, parser);
                 benchmark.flow(function (err, res) {
+                    assert.ifError(err);
                     assert.deepEqual(res[0], expect);
                     done();
                 });
@@ -30,7 +31,8 @@ describe('lib/benchmark', function () {
                     parser,
                     results,
                     { intensity: input.intensity },
-                    function () {
+                    function (err) {
+                        assert.ifError(err);
                         assert.deepEqual(
                             results[0],
                             expect);
