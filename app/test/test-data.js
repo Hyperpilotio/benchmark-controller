@@ -129,8 +129,6 @@ const BENCHMARK_DATASET = {
     }]
 };
 
-console.log(path.resolve('lib', 'hyerpilot_redis_parser.js'))
-
 const PARSER_UTIL_DATASET = {
     'input': {
         'redis': {

@@ -43,14 +43,9 @@ const checkFieldsExists = function(map, ...fields) {
 };
 
 const generateBenchmarkOpts = function(requestBody) {
-    const field = checkFieldsExists(requestBody, "loadTest", "stageId", "intensity");
+    const field = checkFieldsExists(requestBody, "loadTest", "stageId", "intensity", "parserUrl");
     if (field !== null) {
         return [{}, "Field not found: " + field];
-    }
-
-    const subField = checkFieldsExists(requestBody.loadTest,  'parserUrl');
-    if (subField !== null) {
-        return [{}, `Field of loadTest not found: ${subField}`];
     }
 
     return [
@@ -58,6 +53,7 @@ const generateBenchmarkOpts = function(requestBody) {
             initialize: requestBody.initialize,
             initializeType: requestBody.initializeType,
             loadTest: requestBody.loadTest,
+            parserUrl: requestBody.parserUrl,
             intensity: requestBody.intensity,
             cleanup: requestBody.cleanup,
             stageId: requestBody.stageId
@@ -67,20 +63,16 @@ const generateBenchmarkOpts = function(requestBody) {
 };
 
 const generateCalibrationOpts = function(requestBody) {
-    const field = checkFieldsExists(requestBody, "loadTest", "slo", "stageId");
+    const field = checkFieldsExists(requestBody, "loadTest", "slo", "stageId", "parserUrl");
     if (field !== null) {
         return [{}, "Field not found: " + field];
-    }
-
-    const subField = checkFieldsExists(requestBody.loadTest,  'parserUrl');
-    if (subField !== null) {
-        return [{}, `Field of loadTest not found: ${subField}`];
     }
 
     return [
         {
             initialize: requestBody.initialize,
             initializeType: requestBody.initializeType,
+            parserUrl: requestBody.parserUrl,
             loadTest: requestBody.loadTest,
             slo: requestBody.slo,
             stageId: requestBody.stageId
@@ -261,7 +253,7 @@ const runBenchmark = async function(options, callback) {
     let parser = null;
     try {
         logger.log('info', `Downloading parser for calibration id ${options.stageId}`);
-        parser = await parserUtil.CreateParserAsync(options.stageId, options.loadTest.parserUrl, options).catch((err)=>{
+        parser = await parserUtil.CreateParserAsync(options.stageId, options.parserUrl, options).catch((err)=>{
             callback(new Error(`Failed to create parser for stageId ${options.stageId}
             Error message: ${err.message}`), null);
         });
@@ -293,7 +285,7 @@ const runCalibration = async function(options, callback) {
     let parser = null;
     try {
         logger.log('info', `Downloading parser for calibration id ${options.stageId}`);
-        parser = await parserUtil.CreateParserAsync(options.stageId, options.loadTest.parserUrl, options).catch((err)=>{
+        parser = await parserUtil.CreateParserAsync(options.stageId, options.parserUrl, options).catch((err)=>{
             callback(new Error(`Failed to create parser for stageId ${options.stageId}
             Error message: ${err.message}`), null);
         });

@@ -1,4 +1,5 @@
 const assert = require('assert');
+const path = require('path');
 const PARSER_UTIL_DATASET = require('./test-data').PARSER_UTIL_DATASET;
 const parserUtil = require('../lib/parserUtil');
 const fs = require('fs');
@@ -16,6 +17,7 @@ describe('ParserUtil', function () {
                 } catch (e) {
                     assert.fail(e);
                 }
+                fs.unlinkSync(path.resolve('lib', 'hyperpilot_redis_parser.js'));
             });
         it('should be able to parse data if a parser is created',
             async function () {
@@ -33,4 +35,3 @@ describe('ParserUtil', function () {
             });
     })
 });
-
