@@ -16,21 +16,20 @@ exports.SetDefault = function(value, defaultValue) {
  * CheckCommandObject
  * function that checks whether or not the input is a valid command object.
  * @param  object commandObj
- * @param  boolean parserRequired
- * @return boolean
+ * @return string missing field
  */
-var IsCommandObjectValid = function(commandObj, parserRequired) {
-    res = true;
-    if(!commandObj) {
-        res = false;
+var FindMissingCommandFields = function(commandObj) {
+    if (!commandObj) {
+        return "commandObj";
     } else if (!commandObj.image) {
-        res = false;
+        return "image";
     } else if (!commandObj.args) {
-        res = false;
+        return "args";
     } else if (!commandObj.path) {
-        res = false;
+        return "path";
     }
-    return res;
+
+    return "";
 }
 
 /**
@@ -41,9 +40,10 @@ var IsCommandObjectValid = function(commandObj, parserRequired) {
  * @param {function} callback
  */
 exports.RunCommand = function(commandObj, collectOutput, callback) {
-    if (!IsCommandObjectValid(commandObj, collectOutput)) {
+    let missingField = FindMissingCommandFields(commandObj);
+    if (missingField != "") {
         logger.log('error', `Error running command: ${JSON.stringify(commandObj)}`);
-        callback(new Error(`Variable commandObj is not valid, ${JSON.stringify(commandObj)}`), null);
+        callback(new Error(`Variable commandObj is missing field ${missingField}`), null);
         return;
     }
 
