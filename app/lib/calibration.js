@@ -21,7 +21,7 @@ function Calibration(options, parser) {
     this.loadTest.args = commandUtil.SetDefault(this.loadTest.args, []);
     this.argValues = {};
     for (i = 0; i < this.loadTest.intensityArgs.length; i++) {
-        intensityArg = this.loadTest.intensityArgs[i];
+        const intensityArg = this.loadTest.intensityArgs[i];
         this.argValues[intensityArg.name] = intensityArg.startingValue;
     }
     this.runsPerIntensity = commandUtil.SetDefault(options.runsPerIntensity, 3);
@@ -59,9 +59,9 @@ Calibration.prototype.computeNextLatencyArgs = function() {
             });
         }
 
-        newIntensityArgs = {};
+        let newIntensityArgs = {};
         for (i = 0; i < this.loadTest.intensityArgs.length; i++) {
-            intensityArg = this.loadTest.intensityArgs[i];
+            const intensityArg = this.loadTest.intensityArgs[i];
             // NOTE There is a chance that variable intesnityArgs is string and
             // intensityArg.step is string too. We want the sum of two number instead of
             // two strings. As a result, we use `Number` to ensure the arguments are numbers.
@@ -77,7 +77,7 @@ Calibration.prototype.computeNextLatencyArgs = function() {
         });
     } else {
         if (lastRunMetric == this.slo.value) {
-            finalResults = {
+            let finalResults = {
                 intensityArgs: this.summaries[this.summaries.length - 1].intensityArgs,
                 qos: lastRunMetric
             }
@@ -95,10 +95,10 @@ Calibration.prototype.computeNextLatencyArgs = function() {
             });
         }
 
-        finalSummary = this.summaries[this.summaries.length - 2]
+        let finalSummary = this.summaries[this.summaries.length - 2]
 
         // The last run went over the goal, so we use the previous run's intensity args
-        finalResults = {
+        let finalResults = {
             intensityArgs: finalSummary.intensityArgs,
             qos: finalSummary.qos
         }
@@ -118,8 +118,8 @@ Calibration.prototype.computeNextThroughputArgs = function() {
         });
     }
 
-    lastRunResult = this.summaries[this.summaries.length - 1];
-    lastRunMetric = lastRunResult.qos;
+    let lastRunResult = this.summaries[this.summaries.length - 1];
+    let lastRunMetric = lastRunResult.qos;
     logger.log('info', `Last run throughput metric ${lastRunMetric}, slo value: ${this.slo.value}`);
 
     if (lastRunMetric > this.lastMaxSummary.qos) {
@@ -144,7 +144,7 @@ Calibration.prototype.computeNextThroughputArgs = function() {
 
     this.lastMaxRuns += 1;
 
-    newIntensityArgs = {}
+    let newIntensityArgs = {}
     for (i = 0; i < this.loadTest.intensityArgs.length; i++) {
         intensityArg = this.loadTest.intensityArgs[i];
         // NOTE There is a chance that variable intesnityArgs is string and
@@ -165,20 +165,28 @@ Calibration.prototype.computeNextThroughputArgs = function() {
  * Compute the next intensity args to run for calibration.
  * @return Error if error found, otherwise null.
  */
-Calibration.prototype.computeNextIntensityArgs = function() {
-    if (this.slo.type == "throughput") {
-        return this.computeNextThroughputArgs();
+Calibration.prototype.computeNextIntensityArgs = function () {
+    if (this.loadTest.intensityArgs.length > 0) {
+        if (this.slo.type == "throughput") {
+            return this.computeNextThroughputArgs();
+        } else {
+            return this.computeNextLatencyArgs();
+        }
     } else {
-        return this.computeNextLatencyArgs();
+        return new types.Result({
+            value: {
+               finalResults: this.summaries[this.summaries.length - 1] 
+            }
+        });
     }
 }
 
 Calibration.prototype.createCalibrationFunc = function() {
     let that = this;
     return function(done) {
-        args = that.loadTest.args.slice();
+        const args = that.loadTest.args.slice();
         for (i = 0; i < that.loadTest.intensityArgs.length; i++) {
-            intensityArg = that.loadTest.intensityArgs[i]
+            const intensityArg = that.loadTest.intensityArgs[i]
             args.push(intensityArg.arg);
             args.push(that.argValues[intensityArg.name]);
         }
@@ -214,7 +222,7 @@ Calibration.prototype.createCalibrationFunc = function() {
                 return;
             }
 
-            lastRunMetrics = 0.0;
+            let lastRunMetrics = 0.0;
             // Move stage run history into results
             for (i = 0; i < that.stageResults.length; i++) {
                 lastResults = that.stageResults[i];
