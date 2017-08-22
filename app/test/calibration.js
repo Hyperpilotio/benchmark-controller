@@ -2,7 +2,27 @@ const assert = require('assert');
 
 describe('lib/calibration', function() {
     const Calibration = require('../lib/calibration');
-    describe('#computeNextIntensityArgs()', function() {
+    describe('#computeNextIntensityArgs()', function () {
+        it('should successfully compute next attempted intensity when intensityArgs is empty',
+            function (done) {
+                config = {
+                    initialize: {},
+                    loadTest: {
+                        intensityArgs: []
+                    },
+                    slo: { value: 100, metric: "key", type: "latency" }
+                };
+                const calibration = new Calibration(config, new ((require('../extension-lib/parser'))));
+                calibration.summaries.push(
+                    {
+                        qos: 80,
+                        intensityArgs: {}
+                    });
+                result = calibration.computeNextIntensityArgs();
+                assert.equal(null, result.error);
+                assert.deepEqual({ qos: 80, intensityArgs: {} }, result.value.finalResults);
+                done();
+            });
         it('should successfully compute next attempted intensity when latency metric is below slo',
            function(done) {
                config = {
