@@ -47,8 +47,8 @@ Calibration.prototype.computeNextLatencyArgs = function() {
         });
     }
 
-    lastRunResult = this.summaries[this.summaries.length - 1];
-    lastRunMetric = lastRunResult.qos;
+    let lastRunResult = this.summaries[this.summaries.length - 1];
+    let lastRunMetric = lastRunResult.qos;
 
     logger.log('info', `Last run latency metric ${lastRunMetric}, slo value: ${this.slo.value}`);
 
@@ -68,7 +68,7 @@ Calibration.prototype.computeNextLatencyArgs = function() {
             newIntensityArgs[intensityArg.name] = Number(lastRunResult.intensityArgs[intensityArg.name]) + Number(intensityArg.step);
         }
 
-        this.lastMaxSummary = lastRunResult
+        this.lastMaxSummary = lastRunResult;
 
         return new types.Result({
             value: {
@@ -76,36 +76,33 @@ Calibration.prototype.computeNextLatencyArgs = function() {
             }
         });
     } else {
+        let finalResults;
         if (lastRunMetric == this.slo.value) {
-            let finalResults = {
+            finalResults = {
                 intensityArgs: this.summaries[this.summaries.length - 1].intensityArgs,
                 qos: lastRunMetric
             }
 
-            return new types.Result({
-                value: {
-                    finalResults: finalResults
-                }
-            });
+            return new types.Result({ value: { finalResults } });
         }
 
-        if (this.summaries.length == 1) {
+        if (this.summaries.length === 1 ) {
+            if (this.loadTest.intensityArgs.length === 0) {
+                return new types.Result({
+                    error: "Cannot match sla goal"
+                });
+            }
             return new types.Result({
                 error: "No intensities can match sla goal"
             });
         }
 
-        let finalSummary = this.summaries[this.summaries.length - 2]
-
         // The last run went over the goal, so we use the previous run's intensity args
-        let finalResults = {
-            intensityArgs: finalSummary.intensityArgs,
-            qos: finalSummary.qos
-        }
+        let { intensityArgs, qos } = this.summaries[this.summaries.length - 2]
 
         return new types.Result({
             value: {
-                finalResults: finalResults
+                finalResults: { intensityArgs, qos }
             }
         });
     }
@@ -205,7 +202,8 @@ Calibration.prototype.createCalibrationFunc = function() {
                 logger.log('error', `Found error ${error}`)
                 logger.log('info', `Found error from last run, returning best known results`);
 
-                if (that.lastMaxSummary.qos === 0.0) {
+                // NOTE if the application does not have intensity arguments, return 0 as qos value
+                if (that.lastMaxSummary.qos === 0.0 && this.loadTest.intensityArgs.length !== 0) {
                     done(new Error("No intensities can match sla goal"));
                     return;
                 }
