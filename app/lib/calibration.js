@@ -27,13 +27,13 @@ function Calibration(options, parser) {
     this.runsPerIntensity = commandUtil.SetDefault(options.runsPerIntensity, 3);
     this.slo = options.slo;
     // Results stores all the past runs for all intensities
-    this.results = []
+    this.results = [];
         // Stage results stores multiple run results for the current intensity args
-    this.stageResults = []
+    this.stageResults = [];
         // Summaries stores all the summarized results from the stage results
-    this.summaries = []
+    this.summaries = [];
         // Final intensity args stores the final calibrated intensity output
-    this.finalResults = {}
+    this.finalResults = {};
     this.lastMaxSummary = {
         qos: 0.0
     };
@@ -76,22 +76,16 @@ Calibration.prototype.computeNextLatencyArgs = function() {
             }
         });
     } else {
-        let finalResults;
-        if (lastRunMetric == this.slo.value) {
-            finalResults = {
-                intensityArgs: this.summaries[this.summaries.length - 1].intensityArgs,
-                qos: lastRunMetric
-            }
-
-            return new types.Result({ value: { finalResults } });
+        if (lastRunMetric === this.slo.value) {
+            return new types.Result({
+                value: {
+                    intensityArgs: this.summaries[this.summaries.length - 1].intensityArgs,
+                    qos: lastRunMetric
+                }
+            });
         }
 
-        if (this.summaries.length === 1 ) {
-            if (this.loadTest.intensityArgs.length === 0) {
-                return new types.Result({
-                    error: "Cannot match sla goal"
-                });
-            }
+        if (this.summaries.length === 1) {
             return new types.Result({
                 error: "No intensities can match sla goal"
             });
@@ -172,7 +166,7 @@ Calibration.prototype.computeNextIntensityArgs = function () {
     } else {
         return new types.Result({
             value: {
-               finalResults: this.summaries[this.summaries.length - 1] 
+                finalResults: this.summaries[this.summaries.length - 1]
             }
         });
     }
@@ -203,7 +197,7 @@ Calibration.prototype.createCalibrationFunc = function() {
                 logger.log('info', `Found error from last run, returning best known results`);
 
                 // NOTE if the application does not have intensity arguments, return 0 as qos value
-                if (that.lastMaxSummary.qos === 0.0 && this.loadTest.intensityArgs.length !== 0) {
+                if (that.lastMaxSummary.qos === 0.0 && that.loadTest.intensityArgs.length !== 0) {
                     done(new Error("No intensities can match sla goal"));
                     return;
                 }
