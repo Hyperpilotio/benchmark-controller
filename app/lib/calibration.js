@@ -79,8 +79,10 @@ Calibration.prototype.computeNextLatencyArgs = function() {
         if (lastRunMetric === this.slo.value) {
             return new types.Result({
                 value: {
-                    intensityArgs: this.summaries[this.summaries.length - 1].intensityArgs,
-                    qos: lastRunMetric
+                    'finalResults': {
+                        intensityArgs: this.summaries[this.summaries.length - 1].intensityArgs,
+                        qos: lastRunMetric
+                    }
                 }
             });
         }
