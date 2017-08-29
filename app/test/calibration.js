@@ -3,7 +3,7 @@ const assert = require('assert');
 describe('lib/calibration', function() {
     const Calibration = require('../lib/calibration');
     describe('#computeNextIntensityArgs()', function () {
-        it('should successfully compute next attempted intensity when intensityArgs is empty',
+        it('should get result after computed next attempted intensity when intensityArgs is empty',
             function (done) {
                 config = {
                     initialize: {},
@@ -13,14 +13,14 @@ describe('lib/calibration', function() {
                     slo: { value: 100, metric: "key", type: "latency" }
                 };
                 const calibration = new Calibration(config, new ((require('../extension-lib/parser'))));
-                calibration.summaries.push(
-                    {
-                        qos: 80,
-                        intensityArgs: {}
-                    });
+                const testResult = {
+                    qos: 80,
+                    intensityArgs: {}
+                };
+                calibration.summaries.push(testResult);
                 result = calibration.computeNextIntensityArgs();
                 assert.equal(null, result.error);
-                assert.deepEqual({ qos: 80, intensityArgs: {} }, result.value.finalResults);
+                assert.deepEqual(testResult, result.value.finalResults);
                 done();
             });
         it('should successfully compute next attempted intensity when latency metric is below slo',

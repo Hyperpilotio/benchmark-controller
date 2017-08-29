@@ -253,13 +253,16 @@ const runBenchmark = async function(options, callback) {
     let parser = null;
     try {
         logger.log('info', `Downloading parser for calibration id ${options.stageId}`);
-        parser = await parserUtil.CreateParserAsync(options.stageId, options.parserUrl, options).catch((err)=>{
+        if (!options.parserUrl || options.parserUrl === "") {
+            throw `Unable to get options.parserUrl ${options.parserUrl}`
+        }
+        parser = await parserUtil.CreateParserAsync(options.stageId, options.parserUrl, options).catch((err) => {
             callback(new Error(`Failed to create parser for stageId ${options.stageId}
             Error message: ${err.message}`), null);
         });
     } catch (e) {
         logger.log('error',
-        `Failed to create the parser for stage ${options.stageId}
+            `Failed to create the parser for stage ${options.stageId}
         Error message: ${JSON.stringify(e)}`);
         return callback(err, null);
     }
