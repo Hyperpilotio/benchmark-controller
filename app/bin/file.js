@@ -3,10 +3,10 @@ const db = {};
 
 class FileLogger {
     SaveMetric(stat) {
-        fs.appendFile("/tmp/metrics", stat, function(err) {
-            if (err) {
-                return console.log(err);
-            }
+        fs.appendFile("/tmp/metrics", stat, err => {
+          if (err) {
+            return console.log(err);
+          }
         });
      }
 }
