@@ -21,12 +21,12 @@ if (host === undefined || port === undefined || dbName === undefined) {
 mongoose.Promise = global.Promise;
 mongoose.connect(`mongodb://${host}:${port}/${dbName}`);
 
-connection.on('error', function(err){
-    console.log(`connection error: ${err}.\nHost ${host} Port ${port}`);
-    process.exit(1);
+connection.on('error', err => {
+  console.log(`connection error: ${err}.\nHost ${host} Port ${port}`);
+  process.exit(1);
 });
-connection.once('open', function() {
-    console.log(`Successfully connect to mongo!\nmongodb://${host}:${port}/${dbName}`);
+connection.once('open', () => {
+  console.log(`Successfully connect to mongo!\nmongodb://${host}:${port}/${dbName}`);
 });
 
 const MetricSchema = new Schema({
@@ -53,10 +53,10 @@ MetricSchema.methods = {
         }
 
         this.stat = fieldObj;
-        return this.save(function(err){
-            if(err){
-                console.log(`Unable to save metric: ${err}`);
-            }
+        return this.save(err => {
+          if(err){
+            console.log(`Unable to save metric: ${err}`);
+          }
         });
     }
 };
