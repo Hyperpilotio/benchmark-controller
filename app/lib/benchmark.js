@@ -18,10 +18,10 @@ function Benchmark(options) {
 }
 
 function createRunFunc(that) {
-    return function(done) {
-        commandUtil.RunBenchmark(that.loadTest, that.results, {
-            intensity: that.intensity
-        }, done);
+    return done => {
+      commandUtil.RunBenchmark(that.loadTest, that.results, {
+        intensity: that.intensity
+      }, done);
     };
 }
 
@@ -34,25 +34,25 @@ Benchmark.prototype.flow = function(callback) {
         if (that.initialize !== undefined && that.initialize !== null) {
             console.log("Initializing benchmark")
             initialize = that.initialize;
-            funcs.push(function(done) {
-                commandUtil.RunCommand(initialize, done);
+            funcs.push(done => {
+              commandUtil.RunCommand(initialize, done);
             });
         }
         funcs.push(createRunFunc(that));
         if (that.cleanup !== undefined && that.cleanup !== null) {
             console.log("Cleaning up benchmark")
             cleanup = that.cleanup;
-            funcs.push(function(done) {
-                commandUtil.RunCommand(cleanup, done);
+            funcs.push(done => {
+              commandUtil.RunCommand(cleanup, done);
             });
         }
     }
 
     async.series(
         funcs,
-        function(err) {
-            callback(err, that.results);
-        });
+    err => {
+      callback(err, that.results);
+    });
 };
 
 module.exports = Benchmark;
