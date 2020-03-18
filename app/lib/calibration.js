@@ -153,85 +153,85 @@ Calibration.prototype.computeNextIntensityArgs = function() {
 }
 
 function createCalibrationFunc(that) {
-    return function(done) {
-        args = that.loadTest.args.slice();
-        for (i = 0; i < that.loadTest.intensityArgs.length; i++) {
-            intensityArg = that.loadTest.intensityArgs[i]
-            if (intensityArg.arg !== undefined) {
-                args.push(intensityArg.arg);
-            }
-            args.push(that.argValues[intensityArg.name]);
+    return done => {
+      args = that.loadTest.args.slice();
+      for (i = 0; i < that.loadTest.intensityArgs.length; i++) {
+        intensityArg = that.loadTest.intensityArgs[i];
+        if (intensityArg.arg !== undefined) {
+          args.push(intensityArg.arg);
         }
-        command = {
-            path: that.loadTest.path,
-            args: args
+        args.push(that.argValues[intensityArg.name]);
+      }
+      command = {
+        path: that.loadTest.path,
+        args: args
+      };
+
+      console.log("Running calibration benchmark: " + JSON.stringify(command));
+
+      commandUtil.RunBenchmark(command, that.stageResults, {
+        intensityArgs: that.argValues
+      }, error => {
+        if (error !== null && error !== undefined) {
+          done(error);
+          return;
         }
 
-        console.log("Running calibration benchmark: " + JSON.stringify(command));
+        if (that.stageResults.length < that.runsPerIntensity) {
+          console.log("Running #" + (that.stageResults.length + 1) + " calibration run for the same intensity");
+          createCalibrationFlowFunc(that)(done);
+          return;
+        }
 
-        commandUtil.RunBenchmark(command, that.stageResults, {
-            intensityArgs: that.argValues
-        }, function(error) {
-            if (error !== null && error !== undefined) {
-                done(error);
-                return
-            }
-
-            if (that.stageResults.length < that.runsPerIntensity) {
-                console.log("Running #" + (that.stageResults.length + 1) + " calibration run for the same intensity");
-                createCalibrationFlowFunc(that)(done);
-                return
-            }
-
-            lastRunMetrics = 0.0;
-            // Move stage run history into results
+        lastRunMetrics = 0.0;
+        // Move stage run history into results
             for (i = 0; i < that.stageResults.length; i++) {
-                lastResults = that.stageResults[i];
-                lastRunMetrics += parseFloat(lastResults.results[that.slo.metric]);
-                that.results.push(lastResults);
-            }
+          lastResults = that.stageResults[i];
+          lastRunMetrics += parseFloat(lastResults.results[that.slo.metric]);
+          that.results.push(lastResults);
+        };
 
-            that.summaries.push({
-                qos: lastRunMetrics / (that.stageResults.length * 1.0),
-                intensityArgs: that.argValues
-            })
-
-            that.stageResults = [];
-
-            result = that.computeNextIntensityArgs();
-            if (result.error !== null) {
-                console.log("Unexpected error when finding next intensity arg: " + result.error);
-                done(result.error);
-                return
-            } else if (result.value.finalArgs !== undefined) {
-                console.log("Final intensity args found: " + JSON.stringify(result.value.finalArgs));
-                that.finalIntensityArgs = result.value.finalArgs;
-                done();
-                return
-            }
-
-            console.log("Setting next run's intensity args to " + JSON.stringify(result.value.nextArgs));
-            that.argValues = result.value.nextArgs;
-            createCalibrationFlowFunc(that)(done);
+        that.summaries.push({
+          qos: lastRunMetrics / (that.stageResults.length * 1.0),
+          intensityArgs: that.argValues
         });
+
+        that.stageResults = [];
+
+        result = that.computeNextIntensityArgs();
+        if (result.error !== null) {
+          console.log("Unexpected error when finding next intensity arg: " + result.error);
+          done(result.error);
+          return;
+        } else if (result.value.finalArgs !== undefined) {
+          console.log("Final intensity args found: " + JSON.stringify(result.value.finalArgs));
+          that.finalIntensityArgs = result.value.finalArgs;
+          done();
+          return;
+        }
+
+        console.log("Setting next run's intensity args to " + JSON.stringify(result.value.nextArgs));
+        that.argValues = result.value.nextArgs;
+        createCalibrationFlowFunc(that)(done);
+      });
     }
 }
 
 function createCalibrationFlowFunc(that) {
-    return function(done) {
-        if (that.initialize !== undefined && that.initialize !== null) {
-            console.log("Initializing calibration: " + JSON.stringify({path: that.initialize.path, args: that.initialize.args}))
-            commandUtil.RunCommand(that.initialize, function(error, output) {
-                if (error !== null) {
-                    done(error);
-                    return
-                }
+    return done => {
+      if (that.initialize !== undefined && that.initialize !== null) {
+        console.log("Initializing calibration: " + JSON.stringify({path: that.initialize.path, args: that.initialize.args}));
+        commandUtil.RunCommand(that.initialize, (error, output) => {
+          if (error !== null) {
+            done(error);
+            return;
+          }
 
-                createCalibrationFunc(that)(done)
-            })
-        } else {
-                createCalibrationFunc(that)(done)
-        }
+          createCalibrationFunc(that)(done);
+        });
+      } else {
+        createCalibrationFunc(that)(done)
+      }
     }
 }
 
@@ -240,12 +240,12 @@ Calibration.prototype.flow = function(callback) {
 
     async.series(
         [createCalibrationFlowFunc(that)],
-        function(err) {
-            callback(err, {
-                runResults: that.results,
-                finalIntensityArgs: that.finalIntensityArgs
-            });
-        });
+    err => {
+      callback(err, {
+        runResults: that.results,
+        finalIntensityArgs: that.finalIntensityArgs
+      });
+    });
 };
 
 module.exports = Calibration;
